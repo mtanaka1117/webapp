@@ -1,0 +1,65 @@
+version: '3'
+services:
+  mysql:
+    image: mysql:5.7
+    container_name: mysql
+    env_file: ./mysql/mysql.env
+    environment:
+      - TZ=Asia/Tokyo
+    ports:
+      - '3306:3306'
+    volumes:
+      - ./mysql/conf:/etc/mysql/conf.d/:ro
+      - mysqldata:/var/lib/mysql
+      - ./mysql/csv:/csv
+    networks:
+      - backend
+
+  app:
+    build: .
+    container_name: node
+    env_file: ./app.env
+    environment:
+      - TZ=Asia/Tokyo
+      - DEBUG=app:*
+    tty: true
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./src:/app
+    working_dir: /app
+    command: npm run dev
+    networks:
+      - backend
+    depends_on:
+      - mysql
+
+  nvidia:
+    build: ./python
+    command: tail -f /dev/null
+    tty: true
+    stdin_open: true
+    volumes:
+      - ./python:/python
+      - /home/srv-admin/images:/home/srv-admin/images
+    depends_on:
+      - mysql
+    environment: 
+          NVIDIA_VISIBLE_DEVICES: all 
+          NVIDIA_DRIVER_CAPABILITIES: all 
+    deploy:
+      resources:
+        reservations:
+          devices:
+           - driver: nvidia
+             capabilities: [gpu]
+    networks:
+      - backend
+  
+
+#使用するネットワークを作成。docker-composeの場合service以下の名前を使って名前解決されるため、appとmysqlが自動的に接続される。
+networks:
+  backend:
+
+volumes:
+  mysqldata:
