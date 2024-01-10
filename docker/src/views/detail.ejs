@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Photo Detail</title>
+</head>
+<body>
+  <h1>Photo Detail</h1>
+  <p>YOLO class : <%= detailInfo.label %></p>
+  <p>DateTime: From <%= detailInfo.first_time %> To <%= detailInfo.last_time %></p>
+  <p>bbox: <%= detailInfo.bbox %></p>
+  <img src="/images/<%= detailInfo.image %>" alt="Detail Image">
+</body>
+</html>

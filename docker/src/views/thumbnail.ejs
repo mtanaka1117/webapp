@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Thumbnail</title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+    <!-- <h1>検索</h1> -->
+    <form action="/shop/search" method="GET">
+    <table>
+      <tr>
+        <label>カテゴリー  </label>
+        <input type="text" id="q" name="q" placeholder="カテゴリーを入力">
+      </tr>
+      <br>
+      <tr>
+        <label>時間     </label>
+        <input type="date" id="date" name="date">
+        <input type="time" id="time" name="time">
+        ～
+        <input type="date" id="date2" name="date2">
+        <input type="time" id="time2" name="time2">
+      </tr>
+    </table>
+      <br>
+      <input type="submit" value="検索">
+    </form>
+
+    <br>
+
+    <% thumb_list.forEach((thumbnail, index) => { %>
+        <a href="/detail/<%= index + 1 %>">
+            <img class="img", src="/images/<%= thumbnail %>" alt="Thumbnail">
+        </a>
+    <% }); %>
+  </body>
+</html>
