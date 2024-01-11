@@ -38,6 +38,7 @@ def insert_data(conn=conn):
   conn.commit()
   conn.close()
 
+
 def delete_all_data(conn=conn):
   conn.ping(reconnect=True)
   cur = conn.cursor()
