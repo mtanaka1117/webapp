@@ -129,11 +129,11 @@ for i in file_list:
                             
                             xmin, ymin, xmax, ymax = map(int, bbox[:4])
                             crop = img_v_color[ymin:ymax, xmin:xmax]
-                            cv2.imwrite('./thumbnails/{}.png'.format(int(cls)), crop)
+                            cv2.imwrite('../src/public/images/{}.png'.format(int(cls)), crop)
                             
                             overview = img_v_color.copy()
                             cv2.rectangle(overview, (xmin,ymin), (xmax,ymax), (0, 0, 255), thickness=5)
-                            cv2.imwrite('./thumbnails/detail_{}.png'.format(int(cls)), overview)
+                            cv2.imwrite('../src/public/images/detail_{}.png'.format(int(cls)), overview)
                             break
 
             if (feature_compare(b_img_v, img_v)<12):
