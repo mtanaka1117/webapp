@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>hello</title>
+</head>
+<ol class="list-group">
+  <h1>db</h1>
+  <% for (let i in results){ %>
+    <li class="list-group-item">
+        <%= results[i].id + ':' + results[i].last_time %>
+    </li>
+  <% } %>
+</ol>
+</html>

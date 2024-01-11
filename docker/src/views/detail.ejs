@@ -5,9 +5,9 @@
 </head>
 <body>
   <h1>Photo Detail</h1>
-  <p>YOLO class : <%= detailInfo.label %></p>
-  <p>DateTime: From <%= detailInfo.first_time %> To <%= detailInfo.last_time %></p>
-  <p>bbox: <%= detailInfo.bbox %></p>
-  <img src="/images/<%= detailInfo.image %>" alt="Detail Image">
+  <p>YOLO class : <%= detail_Info.label %></p>
+  <p>DateTime: From <%= detail_Info.first_time %> To <%= detail_Info.last_time %></p>
+  <p>bbox: [<%= detail_Info.bbox_x1 %>, <%= detail_Info.bbox_y1 %>, <%= detail_Info.bbox_x2 %>, <%= detail_Info.bbox_y2 %>]</p>
+  <img src="/images/detail/<%= detail_Info.label %>/detail_<%= detail_Info.last_time %>.png" alt="Detail Image">
 </body>
 </html>

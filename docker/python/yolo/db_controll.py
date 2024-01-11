@@ -65,5 +65,5 @@ def insert_image_data(time, path, conn=conn):
   conn.close()
 
 if __name__ == "__main__":
-  # delete_all_data()
+  delete_all_data()
   insert_csv_data()

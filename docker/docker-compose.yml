@@ -27,6 +27,7 @@ services:
       - '3000:3000'
     volumes:
       - ./src:/app
+      - /home/srv-admin/webapp/docker/python/results:/app/public/images
       # - ./python/yolo/thumbnails:/app/public/images
       # - imagedata:/app/public/images
     working_dir: /app
@@ -43,7 +44,8 @@ services:
     stdin_open: true
     volumes:
       - ./python:/python
-      - /home/srv-admin/images:/home/srv-admin/images
+      - /home/srv-admin/images:/images
+      - /home/srv-admin/webapp/docker/python/results:/python/results
       # - imagedata:/python/yolo/thumbnails
     depends_on:
       - mysql

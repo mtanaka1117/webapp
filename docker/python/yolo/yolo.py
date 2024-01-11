@@ -48,7 +48,7 @@ affine_matrix = np.array([[ 1.15775321e+00, 2.06036561e-02, -8.65530736e+01],
                         [-3.59868529e-02, 1.16843440e+00, -4.39524932e+01]])
 
 # path = '/home/srv-admin/images/items*/*/*.jpg'
-path = '/home/srv-admin/images/items1/1313/*.jpg'
+path = '/images/items1/1313/*.jpg'
 file_list = peekable(sorted(glob.iglob(path)))
 
 # fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
@@ -100,7 +100,7 @@ for i in file_list:
                 cy = M["m01"] / M["m00"]
                 points.append((cx, cy))
             
-            pred = model.predict(img_v_color, classes=[25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 72, 73, 74, 75, 76, 77, 78, 79])
+            pred = model.predict(img_v_color, classes=[25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 63, 64, 65, 66, 67, 68, 69, 70, 73, 74, 75, 76, 77, 78, 79])
             frame = pred[0].plot()
             bboxes = pred[0].boxes.xyxy.cpu().numpy()
             classes = pred[0].boxes.cls.cpu().numpy()
@@ -128,16 +128,19 @@ for i in file_list:
                             writer = csv.writer(f)
                             writer.writerows(data)
                             
-                            path = './thumbnails/{}'.format(int(cls))
+                            path = '../results/thumbnails/{}'.format(int(cls))
+                            if not os.path.exists(path): os.mkdir(path)
+                            path = '../results/detail/{}'.format(int(cls))
                             if not os.path.exists(path): os.mkdir(path)
                             
                             xmin, ymin, xmax, ymax = map(int, bbox[:4])
                             crop = img_v_color[ymin:ymax, xmin:xmax]
-                            cv2.imwrite('./thumbnails/{}/{}.png'.format(int(cls),time), crop)
+                            cv2.imwrite('../results/thumbnails/{}/{}.png'.format(int(cls),time), crop)
+                            # cv2.imwrite('./thumbnails/{}/{}.png'.format(int(cls),time), crop)
                             
                             overview = img_v_color.copy()
                             cv2.rectangle(overview, (xmin,ymin), (xmax,ymax), (0, 0, 255), thickness=5)
-                            cv2.imwrite('./thumbnails/{}/detail_{}.png'.format(int(cls),time), overview)
+                            cv2.imwrite('../results/detail/{}/detail_{}.png'.format(int(cls),time), overview)
                             break
 
             if (feature_compare(b_img_v, img_v)<12):

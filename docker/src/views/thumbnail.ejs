@@ -28,10 +28,10 @@
 
     <br>
 
-    <% thumb_list.forEach((thumbnail, index) => { %>
-        <a href="/detail/<%= index + 1 %>">
-            <img class="img", src="/images/<%= thumbnail %>" alt="Thumbnail">
+    <% for (let i in results){ %>
+        <a href="/detail/<%= results[i].id %>">
+            <img class="img", src="/images/thumbnails/<%= results[i].label %>/<%= results[i].last_time %>.png" alt="Thumbnail">
         </a>
-    <% }); %>
+    <% }; %>
   </body>
 </html>
