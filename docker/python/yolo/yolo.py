@@ -3,9 +3,9 @@ import cv2
 import numpy as np
 from more_itertools import peekable
 from ultralytics import YOLO
-from matplotlib import pyplot as plt
 import datetime
 import csv
+import os
 # import time
 
 def feature_compare(img1, img2):
@@ -123,17 +123,21 @@ for i in file_list:
                     # writer.writerows(data)
                     for pt in points:
                         if cv2.pointPolygonTest(poly, pt, False) >= 0:
-                            data = [[datetime.datetime.now(), "table", int(cls), list(bbox)]]
+                            time = datetime.datetime.now()
+                            data = [[time, "table", int(cls), list(bbox)]]
                             writer = csv.writer(f)
                             writer.writerows(data)
                             
+                            path = './thumbnails/{}'.format(int(cls))
+                            if not os.path.exists(path): os.mkdir(path)
+                            
                             xmin, ymin, xmax, ymax = map(int, bbox[:4])
                             crop = img_v_color[ymin:ymax, xmin:xmax]
-                            cv2.imwrite('../src/public/images/{}.png'.format(int(cls)), crop)
+                            cv2.imwrite('./thumbnails/{}/{}.png'.format(int(cls),time), crop)
                             
                             overview = img_v_color.copy()
                             cv2.rectangle(overview, (xmin,ymin), (xmax,ymax), (0, 0, 255), thickness=5)
-                            cv2.imwrite('../src/public/images/detail_{}.png'.format(int(cls)), overview)
+                            cv2.imwrite('./thumbnails/{}/detail_{}.png'.format(int(cls),time), overview)
                             break
 
             if (feature_compare(b_img_v, img_v)<12):

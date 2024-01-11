@@ -27,6 +27,8 @@ services:
       - '3000:3000'
     volumes:
       - ./src:/app
+      # - ./python/yolo/thumbnails:/app/public/images
+      # - imagedata:/app/public/images
     working_dir: /app
     command: npm start
     networks:
@@ -42,6 +44,7 @@ services:
     volumes:
       - ./python:/python
       - /home/srv-admin/images:/home/srv-admin/images
+      # - imagedata:/python/yolo/thumbnails
     depends_on:
       - mysql
     environment: 
@@ -63,3 +66,4 @@ networks:
 
 volumes:
   mysqldata:
+  # imagedata:
