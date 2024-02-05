@@ -6,11 +6,11 @@
   </head>
   <body>
     <!-- <h1>検索</h1> -->
-    <form action="/shop/search" method="GET">
+    <form method="POST">
     <table>
       <tr>
         <label>カテゴリー  </label>
-        <input type="text" id="q" name="q" placeholder="カテゴリーを入力">
+        <input type="text" id="label" name="label" placeholder="カテゴリーを入力">
       </tr>
       <br>
       <tr>
@@ -23,13 +23,13 @@
       </tr>
     </table>
       <br>
-      <input type="submit" value="検索">
+      <button type="submit">検索</button>
     </form>
 
     <br>
 
     <% for (let i in results){ %>
-        <a href="/detail/<%= results[i].id %>">
+        <a href="/images/<%= results[i].id %>">
             <img class="img", src="/images/thumbnails/<%= results[i].label %>/<%= results[i].last_time %>.png" alt="Thumbnail">
         </a>
     <% }; %>
