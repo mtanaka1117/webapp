@@ -10,7 +10,20 @@
     <table>
       <tr>
         <label>カテゴリー  </label>
-        <input type="text" id="label" name="label" placeholder="カテゴリーを入力">
+        <select id="label" name="label">
+          <option value="" hidden>選択してください</option>
+          <option value="25">umbrella</option>
+          <option value="26">handbag</option>
+          <option value="28">suitcase</option>
+          <option value="39">bottle</option>
+          <option value="41">cup</option>
+          <option value="64">mouse</option>
+          <option value="65">remote</option>
+          <option value="67">cell phone</option>
+          <option value="73">book</option>
+          <option value="74">clock</option>
+          <option value="76">scissors</option>
+        </select>
       </tr>
       <br>
       <tr>
@@ -28,10 +41,20 @@
 
     <br>
 
-    <% for (let i in results){ %>
-        <a href="/images/<%= results[i].id %>">
-            <img class="img", src="/images/thumbnails/<%= results[i].label %>/<%= results[i].last_time %>.png" alt="Thumbnail">
-        </a>
-    <% }; %>
+    <div class="parent">
+      <% for (let i in results){ %>
+
+        <div class="border">
+          <div class="box">
+            <p>label: <%= results[i].label %></p>
+          </div>
+          <a href="/images/<%= results[i].id %>">
+            <img class="img" src="/images/thumbnails/<%= results[i].label %>/<%= results[i].last_time %>.png" alt="Thumbnail">
+          </a>
+        </div>
+      <% }; %>
+    </div>
+      
+      
   </body>
 </html>

@@ -43,118 +43,97 @@ def hist_compare(img1, img2, threshold):
     else: return False
     
 
-# start = time.time()
 affine_matrix = np.array([[ 1.15775321e+00, 2.06036561e-02, -8.65530736e+01],
                         [-3.59868529e-02, 1.16843440e+00, -4.39524932e+01]])
 
-# path = '/home/srv-admin/images/items*/*/*.jpg'
-path = '/images/items1/1313/*.jpg'
-file_list = peekable(sorted(glob.iglob(path)))
+path = '/images/items*/*/*.jpg'
+# path = '/images/items1/1313/*.jpg'
 
-# fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
-# video = cv2.VideoWriter('log.mp4',fourcc, 30.3, (640, 480))
+def yolo(path=path):
+    file_list = peekable(sorted(glob.iglob(path)))
 
-if '_V' in file_list.peek():
-    bg_v = cv2.imread(next(file_list), 0)
-    bg_t = cv2.imread(next(file_list), 0)
-else:
-    next(file_list)
-    bg_v = cv2.imread(next(file_list), 0)
-    bg_t = cv2.imread(next(file_list), 0)
-    
-b_img_v = bg_v.copy()
-kernel = np.ones((5,5),np.uint8)
+    if '_V' in file_list.peek():
+        bg_v = cv2.imread(next(file_list), 0)
+        bg_t = cv2.imread(next(file_list), 0)
+    else:
+        next(file_list)
+        bg_v = cv2.imread(next(file_list), 0)
+        bg_t = cv2.imread(next(file_list), 0)
+        
+    b_img_v = bg_v.copy()
+    kernel = np.ones((5,5),np.uint8)
 
-model = YOLO("yolov8x.pt")
+    model = YOLO("yolov8x.pt")
 
-classes = list(range(1, 80))
+    classes = list(range(1, 80))
 
-for i in file_list:
-    try:
-        if '_V' in i and '_T' in file_list.peek():
-            img_v = cv2.imread(i, 0)
-            img_v_color = cv2.imread(i)
-            diff_v = cv2.absdiff(img_v, bg_v)
-            _, img_th_v = cv2.threshold(diff_v,30,255,cv2.THRESH_BINARY)
-            dilate_v = cv2.dilate(img_th_v,kernel,iterations=5)
-            erode_v = cv2.erode(dilate_v, kernel, 2)
+    for i in file_list:
+        try:
+            if '_V' in i and '_T' in file_list.peek():
+                img_v = cv2.imread(i, 0)
+                img_v_color = cv2.imread(i)
+                diff_v = cv2.absdiff(img_v, bg_v)
+                _, img_th_v = cv2.threshold(diff_v,30,255,cv2.THRESH_BINARY)
+                dilate_v = cv2.dilate(img_th_v,kernel,iterations=5)
+                erode_v = cv2.erode(dilate_v, kernel, 2)
 
-            img_t = cv2.imread(next(file_list), 0)
-            diff_t = cv2.absdiff(img_t, bg_t)
-            affined_t = cv2.warpAffine(diff_t, affine_matrix, (img_v.shape[1], img_v.shape[0]))
-            _, img_th_t = cv2.threshold(affined_t,12,255,cv2.THRESH_BINARY)
-            dilate_t = cv2.dilate(img_th_t,kernel,3)
-            erode_t = cv2.erode(dilate_t, kernel, 2)
+                img_t = cv2.imread(next(file_list), 0)
+                diff_t = cv2.absdiff(img_t, bg_t)
+                affined_t = cv2.warpAffine(diff_t, affine_matrix, (img_v.shape[1], img_v.shape[0]))
+                _, img_th_t = cv2.threshold(affined_t,12,255,cv2.THRESH_BINARY)
+                dilate_t = cv2.dilate(img_th_t,kernel,3)
+                erode_t = cv2.erode(dilate_t, kernel, 2)
 
-            touch_region = cv2.subtract(erode_t, erode_v)
-            contours, _ = cv2.findContours(touch_region, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-            contours = list(filter(lambda x: cv2.contourArea(x) > 80, contours))
-            # cv2.drawContours(img_v_color, contours, -1, (0,0,255), 2)
-            # cv2.imshow('img', img_v_color)
-            # cv2.waitKey(1)
-            
-            points = []
-            for cnt in contours:
-                M = cv2.moments(cnt)
-                cx = M["m10"] / M["m00"]
-                cy = M["m01"] / M["m00"]
-                points.append((cx, cy))
-            
-            pred = model.predict(img_v_color, classes=[25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 63, 64, 65, 66, 67, 68, 69, 70, 73, 74, 75, 76, 77, 78, 79])
-            frame = pred[0].plot()
-            bboxes = pred[0].boxes.xyxy.cpu().numpy()
-            classes = pred[0].boxes.cls.cpu().numpy()
-            
-            # mask = cv2.subtract(erode_t, erode_v)
-            # mask_inv = cv2.bitwise_not(mask)
-            # back = cv2.bitwise_and(frame, frame, mask_inv)
-            # cut = cv2.bitwise_and(mask, mask, mask)
-            # cut = cv2.cvtColor(cut, cv2.COLOR_GRAY2BGR)
-            # paste = cv2.add(back, cut)
+                touch_region = cv2.subtract(erode_t, erode_v)
+                contours, _ = cv2.findContours(touch_region, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+                contours = list(filter(lambda x: cv2.contourArea(x) > 80, contours))
+                
+                points = []
+                for cnt in contours:
+                    M = cv2.moments(cnt)
+                    cx = M["m10"] / M["m00"]
+                    cy = M["m01"] / M["m00"]
+                    points.append((cx, cy))
+                
+                pred = model.predict(img_v_color, classes=[25, 26, 28, 39, 41, 64, 65, 67, 73, 74, 76])
+                frame = pred[0].plot()
+                bboxes = pred[0].boxes.xyxy.cpu().numpy()
+                classes = pred[0].boxes.cls.cpu().numpy()
+                
+                polygon = []
+                for x1, y1, x2, y2 in bboxes:
+                    polygon.append(np.array([[x1, y1], [x1, y2], [x2, y2], [x2, y1]]))
 
-            polygon = []
-            for x1, y1, x2, y2 in bboxes:
-                polygon.append(np.array([[x1, y1], [x1, y2], [x2, y2], [x2, y1]]))
+                with open("result.csv", "a") as f:
+                    for poly, cls, bbox in zip(polygon, classes, bboxes):
+                        # data = [[datetime.datetime.now(), "table", cls, list(bbox)]]
+                        # writer = csv.writer(f)
+                        # writer.writerows(data)
+                        for pt in points:
+                            if cv2.pointPolygonTest(poly, pt, False) >= 0:
+                                time = datetime.datetime.now()
+                                data = [[time, "table", int(cls), list(bbox)]]
+                                writer = csv.writer(f)
+                                writer.writerows(data)
+                                
+                                path = '../results/thumbnails/{}'.format(int(cls))
+                                if not os.path.exists(path): os.mkdir(path)
+                                path = '../results/detail/{}'.format(int(cls))
+                                if not os.path.exists(path): os.mkdir(path)
+                                
+                                xmin, ymin, xmax, ymax = map(int, bbox[:4])
+                                crop = img_v_color[ymin:ymax, xmin:xmax]
+                                cv2.imwrite('../results/thumbnails/{}/{}.png'.format(int(cls),time), crop)
+                                
+                                overview = img_v_color.copy()
+                                cv2.rectangle(overview, (xmin,ymin), (xmax,ymax), (0, 0, 255), thickness=5)
+                                cv2.imwrite('../results/detail/{}/detail_{}.png'.format(int(cls),time), overview)
+                                break
 
-            with open("result.csv", "a") as f:
-                for poly, cls, bbox in zip(polygon, classes, bboxes):
-                    # data = [[datetime.datetime.now(), "table", cls, list(bbox)]]
-                    # writer = csv.writer(f)
-                    # writer.writerows(data)
-                    for pt in points:
-                        if cv2.pointPolygonTest(poly, pt, False) >= 0:
-                            time = datetime.datetime.now()
-                            data = [[time, "table", int(cls), list(bbox)]]
-                            writer = csv.writer(f)
-                            writer.writerows(data)
-                            
-                            path = '../results/thumbnails/{}'.format(int(cls))
-                            if not os.path.exists(path): os.mkdir(path)
-                            path = '../results/detail/{}'.format(int(cls))
-                            if not os.path.exists(path): os.mkdir(path)
-                            
-                            xmin, ymin, xmax, ymax = map(int, bbox[:4])
-                            crop = img_v_color[ymin:ymax, xmin:xmax]
-                            cv2.imwrite('../results/thumbnails/{}/{}.png'.format(int(cls),time), crop)
-                            # cv2.imwrite('./thumbnails/{}/{}.png'.format(int(cls),time), crop)
-                            
-                            overview = img_v_color.copy()
-                            cv2.rectangle(overview, (xmin,ymin), (xmax,ymax), (0, 0, 255), thickness=5)
-                            cv2.imwrite('../results/detail/{}/detail_{}.png'.format(int(cls),time), overview)
-                            break
-
-            if (feature_compare(b_img_v, img_v)<12):
-                bg_v = img_v.copy()
-                # print('更新')
-            else: b_img_v = img_v.copy()
-            
-            # video.write(paste)
-
-    except StopIteration:
-        break
-
-
-# video.release()
-# end = time.time()
-# print(end-start)
-
+                if (feature_compare(b_img_v, img_v)<12):
+                    bg_v = img_v.copy()
+                    # print('更新')
+                else: b_img_v = img_v.copy()
+                
+        except StopIteration:
+            break
