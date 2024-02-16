@@ -67,8 +67,6 @@ kernel = np.ones((5,5),np.uint8)
 
 model = YOLO("yolov8x.pt")
 
-classes = list(range(1, 80))
-
 for i in file_list:
     try:
         if '_V' in i and '_T' in file_list.peek():
@@ -100,7 +98,7 @@ for i in file_list:
                 cy = M["m01"] / M["m00"]
                 points.append((cx, cy))
             
-            pred = model.predict(img_v_color, classes=[25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 63, 64, 65, 66, 67, 68, 69, 70, 73, 74, 75, 76, 77, 78, 79])
+            pred = model.predict(img_v_color, classes=[25, 26, 28, 39, 41, 64, 65, 67, 73, 74, 76])
             frame = pred[0].plot()
             bboxes = pred[0].boxes.xyxy.cpu().numpy()
             classes = pred[0].boxes.cls.cpu().numpy()

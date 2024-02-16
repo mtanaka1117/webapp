@@ -21,26 +21,6 @@ def feature_compare(img1, img2):
     dist = [m.distance for m in matches]
     ret = sum(dist) / len(dist)
     return ret
-
-
-def hist_compare(img1, img2, threshold):
-    '''
-    それぞれの画像をHSV空間に変換後、H(色相)のヒストグラムを比較
-    thresholdより大きければ同一物体としてTrueを返す
-    '''
-    img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2HSV)
-    img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2HSV)
-
-    hist1 = cv2.calcHist([img1], [0], None, [256], [0, 256])
-    hist2 = cv2.calcHist([img2], [0], None, [256], [0, 256])
-    
-    hist1 = cv2.normalize(hist1, None, 0.0, 1.0, cv2.NORM_MINMAX)
-    hist2 = cv2.normalize(hist2, None, 0.0, 1.0, cv2.NORM_MINMAX)
-    
-    res = cv2.compareHist(hist1, hist2, 0)
-    if res > threshold:
-        return True
-    else: return False
     
 
 affine_matrix = np.array([[ 1.15775321e+00, 2.06036561e-02, -8.65530736e+01],
@@ -96,7 +76,6 @@ def yolo(path=path):
                     points.append((cx, cy))
                 
                 pred = model.predict(img_v_color, classes=[25, 26, 28, 39, 41, 64, 65, 67, 73, 74, 76])
-                frame = pred[0].plot()
                 bboxes = pred[0].boxes.xyxy.cpu().numpy()
                 classes = pred[0].boxes.cls.cpu().numpy()
                 
@@ -137,3 +116,6 @@ def yolo(path=path):
                 
         except StopIteration:
             break
+        
+if __name__ == '__main__':
+    yolo()

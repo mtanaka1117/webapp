@@ -41,20 +41,19 @@
 
     <br>
 
-    <div class="parent">
+    <!-- <div class="parent"> -->
+    <div class="grid-container">
       <% for (let i in results){ %>
-
-        <div class="border">
-          <div class="box">
-            <p>label: <%= results[i].label %></p>
-          </div>
+        
+        <div class="thumbnail">
           <a href="/images/<%= results[i].id %>">
-            <img class="img" src="/images/thumbnails/<%= results[i].label %>/<%= results[i].last_time %>.png" alt="Thumbnail">
+            <img src="/images/thumbnails/<%= results[i].label %>/<%= results[i].last_time %>.png" alt="Thumbnail">
           </a>
+          
+          <div class="caption">label: <%= results[i].label %></div>
         </div>
-      <% }; %>
-    </div>
-      
+      <% }; %>    
+    </div>  
       
   </body>
 </html>
