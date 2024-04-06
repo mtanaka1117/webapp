@@ -15,8 +15,9 @@ a {
 
 .thumbnail {
   width: 200px;
-  height: auto;
+  height: 100%;
   margin: 10px;
+  background:#9cc;
   text-align: center;
 }
 
@@ -24,9 +25,11 @@ a {
   width: 100%;
   height: auto;
   display: block;
+  padding-bottom: 10px;
 }
 
 .caption {
   margin-top: 5px;
   font-size: 14px;
+  padding-bottom: 10px;
 }

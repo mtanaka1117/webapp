@@ -28,11 +28,11 @@
       <br>
       <tr>
         <label>時間     </label>
-        <input type="date" id="date" name="date">
-        <input type="time" id="time" name="time">
+        <input type="date" id="date" name="date", value="2024-02-29">
+        <input type="time" id="time" name="time", value="00:00">
         ～
-        <input type="date" id="date2" name="date2">
-        <input type="time" id="time2" name="time2">
+        <input type="date" id="date2" name="date2", value="2024-02-29">
+        <input type="time" id="time2" name="time2", value="03:00">
       </tr>
     </table>
       <br>
@@ -41,19 +41,32 @@
 
     <br>
 
-    <!-- <div class="parent"> -->
     <div class="grid-container">
+
+      <% const label_dict = {
+        '25': 'umbrella',
+        '26': 'handbag',
+        '28': 'suitcase',
+        '39': 'bottle',
+        '41': 'cup',
+        '64': 'mouse',
+        '65': 'remote',
+        '67': 'cell phone',
+        '73': 'book',
+        '74': 'clock',
+        '76': 'scissors'
+      }; %>
+
       <% for (let i in results){ %>
-        
         <div class="thumbnail">
           <a href="/images/<%= results[i].id %>">
             <img src="/images/thumbnails/<%= results[i].label %>/<%= results[i].last_time %>.png" alt="Thumbnail">
           </a>
           
-          <div class="caption">label: <%= results[i].label %></div>
+          <div class="caption">label: <%= label_dict[results[i].label] %></div>
         </div>
       <% }; %>    
     </div>  
-      
+    
   </body>
 </html>

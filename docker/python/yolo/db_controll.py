@@ -25,7 +25,7 @@ def insert_csv_data(conn=conn):
   result = cur.fetchone()
   last_id = result[0]+1 if result else 1
 
-  with open('analysis.csv') as f:
+  with open('analysis_no_hist.csv') as f:
       for line in f:
           label, first_time, last_time, count, bbox_x1, bbox_y1, bbox_x2, bbox_y2 = map(str, line.split(','))
           cur.execute("""INSERT INTO csv (id, label, first_time, last_time, count, bbox_x1, bbox_y1, bbox_x2, bbox_y2) 

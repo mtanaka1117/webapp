@@ -1,6 +1,7 @@
 import datetime
 import csv
 import cv2
+import os
 
 def calc_iou(bbox1, bbox2):
     xmin1, ymin1, xmax1, ymax1 = bbox1
@@ -32,9 +33,10 @@ def calc_area(bbox):
     area = (xmax-xmin)*(ymax-ymin)
     return area
 
-def calc_hist(img):
+def calc_hist(img, mask):
     img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    hist = cv2.calcHist([img], [0], None, [256], [0, 256])
+    mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
+    hist = cv2.calcHist([img], [0], mask, [256], [0, 256])
     hist = cv2.normalize(hist, None, 0.0, 1.0, cv2.NORM_MINMAX)
     return hist
 
@@ -42,8 +44,10 @@ def is_same_object(hist1, hist2, bbox1, bbox2):
     hist_comp = cv2.compareHist(hist1, hist2, cv2.HISTCMP_CORREL)
     iou = calc_iou(bbox1, bbox2)
     return hist_comp + iou
+    # return hist_comp
 
 def analysis(csv_path):
+    # os.remove('analysis.csv')
     label_dict = {} # label_count: first_time, last_time, count, bbox
     hist_dict = {} # label: histのリスト
     
@@ -52,18 +56,22 @@ def analysis(csv_path):
         for row in reader:
             label = row[2]
             df_time = datetime.datetime.strptime(row[0], '%Y-%m-%d %H:%M:%S.%f')
-            bbox1 = [float(c) for c in row[3][1:-1].split(',')]
+            bbox1 = [int(float(c)) for c in row[3][1:-1].split(',')]
             
             # 今までに検出されなかったラベル
             if label not in hist_dict.keys():
-                hist_dict[label] = [calc_hist(cv2.imread('../results/thumbnails/{}/{}.png'.format(label, df_time)))]
+                img = cv2.imread('../results/thumbnails/{}/{}.png'.format(label, df_time))
+                mask = cv2.imread('../results/mask/{}/{}.png'.format(label, df_time))
+                hist_dict[label] = [calc_hist(img, mask)]
                 label_dict['{}_0'.format(label)] = [df_time, df_time, 1, bbox1]
             
             # 過去に検出されたラベルなら
             else:
                 # 同一物体かを判定
                 score = [] # 類似度スコア
-                hist1 = calc_hist(cv2.imread('../results/thumbnails/{}/{}.png'.format(label, df_time)))
+                img = cv2.imread('../results/thumbnails/{}/{}.png'.format(label, df_time))
+                mask = cv2.imread('../results/mask/{}/{}.png'.format(label, df_time))
+                hist1 = calc_hist(img, mask)
                 for i, hist2 in enumerate(hist_dict[label]):
                     bbox2 = label_dict['{}_{}'.format(label, i)][3]
                     score.append(is_same_object(hist1, hist2, bbox1, bbox2))
@@ -83,7 +91,7 @@ def analysis(csv_path):
                     #bboxの平均を更新
                     label_dict[label_index][3] = [round((n*y+x)/(n+1)) for x, y in zip(bbox1, bbox_avg)]
             
-                    # 最終時刻を更新
+                    # 最終時刻と確認された時刻の差が一定以内であれば最終時刻を更新
                     if df_time - label_dict[label_index][1] < datetime.timedelta(seconds=30):
                         label_dict[label_index][1] = df_time
 
@@ -112,6 +120,6 @@ def analysis(csv_path):
                     l = label_index.partition('_')
                     line = [l[0]] + label_dict[label_index][0:3] + [x1, y1, x2, y2]
                     writer.writerow(line)
-    
+
 if __name__ == '__main__':
     analysis(csv_path = 'result.csv')
