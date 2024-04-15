@@ -24,19 +24,25 @@ def feature_compare(img1, img2):
     return ret
     
 
-affine_matrix = np.array([[ 1.15775321e+00, 2.06036561e-02, -8.65530736e+01],
-                        [-3.59868529e-02, 1.16843440e+00, -4.39524932e+01]])
+# affine_matrix = np.array([[ 1.15775321e+00, 2.06036561e-02, -8.65530736e+01],
+#                         [-3.59868529e-02, 1.16843440e+00, -4.39524932e+01]])
 
-path = '/images/items*/*/*.jpg'
+
+affine_matrix = np.array([[1.15919938e+00, 7.27146534e-02, -5.70173323e+01],
+                        [1.46108543e-04, 1.16974505e+00, -5.52789456e+01]])
+
+
+# path = '/images/items*/*/*.jpg'
+path = '/images/yolo+1/*/*jpg'
 
 # fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
-# video = cv2.VideoWriter('log.mp4',fourcc, 30.3, (640, 480))
+# video = cv2.VideoWriter('default.mp4',fourcc, 30.3, (640, 480))
 
 def yolo(path=path):
-    # shutil.rmtree('../results/thumbnails/')
-    # shutil.rmtree('../results/detail/')
-    # shutil.rmtree('../results/mask/')
-    # os.remove('result.csv')
+    # shutil.rmtree('../results/default_thumbnails/')
+    # shutil.rmtree('../results/default_detail/')
+    # shutil.rmtree('../results/default_mask/')
+    # os.remove('yolo_default.csv')
     
     file_list = peekable(sorted(glob.iglob(path)))
 
@@ -51,7 +57,7 @@ def yolo(path=path):
     b_img_v = bg_v.copy()
     kernel = np.ones((5,5),np.uint8)
 
-    model = YOLO("yolov8x.pt")
+    model = YOLO("yolov8x-seg.pt")
 
     for i in file_list:
         try:
@@ -81,7 +87,7 @@ def yolo(path=path):
                     cy = M["m01"] / M["m00"]
                     points.append((cx, cy))
                 
-                pred = model.predict(img_v_color, classes=[25, 26, 28, 39, 41, 64, 65, 67, 73, 74, 76])
+                pred = model.predict(img_v_color, classes=[0, 25, 26, 28, 39, 41, 64, 65, 67, 73, 74, 76])
                 bboxes = pred[0].boxes.xyxy.cpu().numpy()
                 classes = pred[0].boxes.cls.cpu().numpy()
                 
@@ -96,65 +102,42 @@ def yolo(path=path):
                 for x1, y1, x2, y2 in bboxes:
                     polygon.append(np.array([[x1, y1], [x1, y2], [x2, y2], [x2, y1]]))
 
-                with open("yolo_only.csv", "a") as f:
+                with open("yolo_default_seg.csv", "a") as f:
                     for poly, cls, bbox in zip(polygon, classes, bboxes):
-                        #物体検知履歴
-                        time = datetime.datetime.now()
-                        data = [[time, "table", int(cls), list(bbox)]]
-                        writer = csv.writer(f)
-                        writer.writerows(data)
-                        
-                        path = '../results/yolo_thumbnails/{}'.format(int(cls))
-                        if not os.path.exists(path): os.makedirs(path)
-                        path = '../results/yolo_detail/{}'.format(int(cls))
-                        if not os.path.exists(path): os.makedirs(path)
-                        path = '../results/yolo_mask/{}'.format(int(cls))
-                        if not os.path.exists(path): os.makedirs(path)
-                        
-                        xmin, ymin, xmax, ymax = map(int, bbox[:4])
-                        crop = img_v_color[ymin:ymax, xmin:xmax]
-                        cv2.imwrite('../results/yolo_thumbnails/{}/{}.png'.format(int(cls),time), crop)
-                        
-                        overview = img_v_color.copy()
-                        cv2.rectangle(overview, (xmin,ymin), (xmax,ymax), (0, 0, 255), thickness=5)
-                        cv2.imwrite('../results/yolo_detail/{}/detail_{}.png'.format(int(cls),time), overview)
-                        
-                        mask = cv2.bitwise_and(erode_v, erode_t)
-                        mask_inv = cv2.bitwise_not(mask)[ymin:ymax, xmin:xmax]
-                        cv2.imwrite('../results/yolo_mask/{}/{}.png'.format(int(cls),time), mask_inv)
-                        
-                        #接触履歴
-                        # for pt in points:
-                        #     if cv2.pointPolygonTest(poly, pt, False) >= 0:
-                        #         time = datetime.datetime.now()
-                        #         data = [[time, "table", int(cls), list(bbox)]]
-                        #         writer = csv.writer(f)
-                        #         writer.writerows(data)
+                        for pt in points:
+                            if cv2.pointPolygonTest(poly, pt, False) >= 0 and cls != 0:
+                                time = datetime.datetime.now()
+                                data = [[time, "table", int(cls), list(bbox)]]
+                                writer = csv.writer(f)
+                                writer.writerows(data)
                                 
-                        #         path = '../results/thumbnails/{}'.format(int(cls))
-                        #         if not os.path.exists(path): os.makedirs(path)
-                        #         path = '../results/detail/{}'.format(int(cls))
-                        #         if not os.path.exists(path): os.makedirs(path)
-                        #         path = '../results/mask/{}'.format(int(cls))
-                        #         if not os.path.exists(path): os.makedirs(path)
+                                path = '../results/defaultseg_thumbnails/{}'.format(int(cls))
+                                if not os.path.exists(path): os.makedirs(path)
+                                path = '../results/defaultseg_detail/{}'.format(int(cls))
+                                if not os.path.exists(path): os.makedirs(path)
+                                path = '../results/defaultseg_mask/{}'.format(int(cls))
+                                if not os.path.exists(path): os.makedirs(path)
                                 
-                        #         xmin, ymin, xmax, ymax = map(int, bbox[:4])
-                        #         crop = img_v_color[ymin:ymax, xmin:xmax]
-                        #         cv2.imwrite('../results/thumbnails/{}/{}.png'.format(int(cls),time), crop)
+                                xmin, ymin, xmax, ymax = map(int, bbox[:4])
+                                crop = img_v_color[ymin:ymax, xmin:xmax]
+                                cv2.imwrite('../results/defaultseg_thumbnails/{}/{}.jpg'.format(int(cls),time), crop)
                                 
-                        #         overview = img_v_color.copy()
-                        #         cv2.rectangle(overview, (xmin,ymin), (xmax,ymax), (0, 0, 255), thickness=5)
-                        #         cv2.imwrite('../results/detail/{}/detail_{}.png'.format(int(cls),time), overview)
+                                overview = img_v_color.copy()
+                                cv2.rectangle(overview, (xmin,ymin), (xmax,ymax), (0, 0, 255), thickness=5)
+                                cv2.imwrite('../results/defaultseg_detail/{}/detail_{}.jpg'.format(int(cls),time), overview)
                                 
-                        #         mask = cv2.bitwise_and(erode_v, erode_t)
-                        #         mask_inv = cv2.bitwise_not(mask)[ymin:ymax, xmin:xmax]
-                        #         cv2.imwrite('../results/mask/{}/{}.png'.format(int(cls),time), mask_inv)
-                        #         break
+                                mask = cv2.bitwise_and(erode_v, erode_t)
+                                mask_inv = cv2.bitwise_not(mask)[ymin:ymax, xmin:xmax]
+                                cv2.imwrite('../results/defaultseg_mask/{}/{}.jpg'.format(int(cls),time), mask_inv)
+                                break
 
-                if (feature_compare(b_img_v, img_v)<12):
+                if (0 not in classes and feature_compare(b_img_v, img_v)<12):
                     bg_v = img_v.copy()
+                    b_img_v = img_v.copy()
                     # print('更新')
                 else: b_img_v = img_v.copy()
+                
+                # video.write(paste)
                 
         except StopIteration:
             break

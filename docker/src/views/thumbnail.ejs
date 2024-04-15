@@ -12,6 +12,7 @@
         <label>カテゴリー  </label>
         <select id="label" name="label">
           <option value="" hidden>選択してください</option>
+          <option value="-1">unknown</option>
           <option value="25">umbrella</option>
           <option value="26">handbag</option>
           <option value="28">suitcase</option>
@@ -28,11 +29,11 @@
       <br>
       <tr>
         <label>時間     </label>
-        <input type="date" id="date" name="date", value="2024-02-29">
-        <input type="time" id="time" name="time", value="00:00">
+        <input type="date" id="date" name="date">
+        <input type="time" id="time" name="time">
         ～
-        <input type="date" id="date2" name="date2", value="2024-02-29">
-        <input type="time" id="time2" name="time2", value="03:00">
+        <input type="date" id="date2" name="date2">
+        <input type="time" id="time2" name="time2">
       </tr>
     </table>
       <br>
@@ -44,6 +45,7 @@
     <div class="grid-container">
 
       <% const label_dict = {
+        '-1': 'unknown',
         '25': 'umbrella',
         '26': 'handbag',
         '28': 'suitcase',
@@ -60,7 +62,7 @@
       <% for (let i in results){ %>
         <div class="thumbnail">
           <a href="/images/<%= results[i].id %>">
-            <img src="/images/thumbnails/<%= results[i].label %>/<%= results[i].last_time %>.png" alt="Thumbnail">
+            <img src="/images/seg_thumbnails/<%= results[i].label %>/<%= results[i].last_time %>.jpg" alt="Thumbnail">
           </a>
           
           <div class="caption">label: <%= label_dict[results[i].label] %></div>

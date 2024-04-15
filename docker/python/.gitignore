@@ -1,2 +1,5 @@
 yolo/yolov8x.pt
+yolo/yolov8x-seg.pt
 results/*
+seg_results/*
+*.mp4

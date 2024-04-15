@@ -1,4 +1,5 @@
 import mysql.connector
+import sys
 
 # コネクションの作成
 conn = mysql.connector.connect(
@@ -9,7 +10,7 @@ conn = mysql.connector.connect(
     database='thermal'
 )
 
-def insert_csv_data(conn=conn):
+def insert_csv_data(input_csv, conn=conn):
   # コネクションが切れた時に再接続してくれるよう設定
   conn.ping(reconnect=True)
   
@@ -25,7 +26,8 @@ def insert_csv_data(conn=conn):
   result = cur.fetchone()
   last_id = result[0]+1 if result else 1
 
-  with open('analysis_no_hist.csv') as f:
+  # with open('analysis_no_hist.csv') as f:
+  with open(input_csv) as f:
       for line in f:
           label, first_time, last_time, count, bbox_x1, bbox_y1, bbox_x2, bbox_y2 = map(str, line.split(','))
           cur.execute("""INSERT INTO csv (id, label, first_time, last_time, count, bbox_x1, bbox_y1, bbox_x2, bbox_y2) 
@@ -68,4 +70,4 @@ def insert_image_data(time, path, conn=conn):
 
 if __name__ == "__main__":
   delete_all_data()
-  insert_csv_data()
+  insert_csv_data(input_csv=sys.argv[1])

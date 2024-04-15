@@ -1,10 +1,12 @@
 import datetime
 import csv
+import os
 
-csv_path = 'result.csv'
+csv_path = 'yolo_default.csv'
 label_dict = {}
 
 with open(csv_path) as f:
+    os.remove('analysis_no_hist.csv')
     reader = csv.reader(f)
     for row in reader:
         label = row[2]
