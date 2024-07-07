@@ -1,0 +1,7 @@
+[2024-05-21T13:55:58.272] [INFO] default - Received POST request with body: {}
+[2024-05-21T13:55:58.300] [INFO] default - ::ffff:172.29.0.1 - - "GET /images/ HTTP/1.1" 200 16521 "" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36 Edg/125.0.0.0"
+[2024-05-21T13:56:04.316] [INFO] default - Received POST request with body: {"label":"-1","date":"","time":"","date2":"","time2":""}
+[2024-05-21T13:56:04.325] [INFO] default - ::ffff:172.29.0.1 - - "POST /images/ HTTP/1.1" 200 10795 "http://localhost:3000/images/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36 Edg/125.0.0.0"
+[2024-05-21T13:56:05.840] [INFO] default - Received POST request with body: {}
+[2024-05-21T13:56:05.840] [INFO] default - Received POST request with body: {}
+[2024-05-21T13:56:05.847] [WARN] default - ::ffff:172.29.0.1 - - "GET /images/2 HTTP/1.1" 304 - "http://localhost:3000/images/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36 Edg/125.0.0.0"

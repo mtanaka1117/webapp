@@ -1,0 +1,23 @@
+{
+    "appenders": {
+    "console": {
+        "type": "console"
+    },
+    "system": {
+        "type": "dateFile",
+        "filename": "logs/system",
+        "pattern": "-yyyy-MM-dd.log",
+        "alwaysIncludePattern": true
+    }
+    
+    },
+    "categories": {
+        "default": {
+        "appenders": [
+            "console",
+            "system"
+        ],
+        "level": "info"
+    }
+    }
+}

@@ -70,4 +70,4 @@ def insert_image_data(time, path, conn=conn):
 
 if __name__ == "__main__":
   delete_all_data()
-  insert_csv_data(input_csv=sys.argv[1])
+  insert_csv_data(input_csv='./analysis/' + sys.argv[1])

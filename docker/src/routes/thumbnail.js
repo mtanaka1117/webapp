@@ -2,6 +2,22 @@ var express = require('express');
 var router = express.Router();
 const mysql = require('mysql');
 
+var log4js = require('log4js');
+var accessLogger = log4js.getLogger();
+
+log4js.configure('log-config.json');
+router.use(log4js.connectLogger(accessLogger, {level: 'auto'}));
+
+// POSTメッセージの内容をログに記録する関数
+function logPostMessage(req, res, next) {
+    accessLogger.info(`Received POST request with body: ${JSON.stringify(req.body)}`);
+    next();
+    }
+
+// ミドルウェアとしてPOSTメッセージの内容を記録
+router.use(express.json());
+router.use(logPostMessage);
+
 const pool = mysql.createPool({
     host: 'mysql',
     user: 'root',

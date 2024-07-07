@@ -44,11 +44,13 @@ affine_matrix = np.array([[1.15919938e+00, 7.27146534e-02, -5.70173323e+01],
 
 
 # path = '/images/yolo+1/20240112_1450/*jpg'
-path = '/images/yolo+1/*/*jpg'
+# path = '/images/yolo+1/*/*jpg'
+path = '/images/data/0701/table/*jpg'
+
 file_list = peekable(sorted(glob.iglob(path)))
 
-# fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
-# video = cv2.VideoWriter('yolo_seg.mp4',fourcc, 30.3, (640, 480), isColor=False)
+fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
+video = cv2.VideoWriter('test_table_0701.mp4',fourcc, 30.3, (640, 480), isColor=True)
 
 if '_V' in file_list.peek():
     bg_v = cv2.imread(next(file_list))
@@ -57,23 +59,41 @@ else:
     next(file_list)
     bg_v = cv2.imread(next(file_list))
     bg_t = cv2.imread(next(file_list))
-    
-b_img_v = bg_first_v = bg_v.copy()
-bg_second = delete_shade(bg_v)
+
+# if '_T' in file_list.peek():
+#     bg_t = cv2.imread(next(file_list))
+#     bg_v = cv2.imread(next(file_list))
+# else:
+#     next(file_list)
+#     bg_t = cv2.imread(next(file_list))
+#     bg_v = cv2.imread(next(file_list))
+
+# 1つ前のフレーム
+b_img_v = bg_v.copy()
+
+# 1つ前の背景
+bg_before = delete_shade(bg_v)
 kernel = np.ones((5,5), np.uint8)
 
-gray_bg = cv2.cvtColor(bg_v, cv2.COLOR_BGR2GRAY)
-_, table_mask = cv2.threshold(gray_bg, 80, 255, cv2.THRESH_BINARY)
+# 初期背景（何も置かれていない）
+# bg_first_v = bg_v.copy()
+# bg_first_v_gray = cv2.cvtColor(bg_first_v, cv2.COLOR_BGR2GRAY)
+bg_first_v = cv2.imread('/images/data/0701/test_table_V.jpg')
+bg_first_v_gray = cv2.cvtColor(bg_first_v, cv2.COLOR_BGR2GRAY)
+_, table_mask = cv2.threshold(bg_first_v_gray, 80, 255, cv2.THRESH_BINARY)
+
+bg_first_v = bg_t.copy()
 
 model = YOLO("yolov8x-seg.pt")
 flag_hand = 0
 color_g = {}
 
 
-shutil.rmtree('../results/seg_thumbnails/')
-shutil.rmtree('../results/seg_detail/')
-shutil.rmtree('../results/seg_mask/')
-os.remove('yolo_seg.csv')
+# shutil.rmtree('../results/table_0527_thumbnails/')
+# shutil.rmtree('../results/table_0527_detail/')
+# shutil.rmtree('../results/table_0527_mask/')
+# os.remove('./log/test_table_0527.csv')
+
 
 for i in file_list:
     try:
@@ -90,11 +110,12 @@ for i in file_list:
             diff_t = cv2.absdiff(img_t, bg_t)
             diff_t = cv2.cvtColor(diff_t, cv2.COLOR_BGR2GRAY)
             affined_t = cv2.warpAffine(diff_t, affine_matrix, (img_v.shape[1], img_v.shape[0]))
-            _, img_th_t = cv2.threshold(affined_t,12,255,cv2.THRESH_BINARY)
+            _, img_th_t = cv2.threshold(affined_t,10,255,cv2.THRESH_BINARY)
             dilate_t = cv2.dilate(img_th_t,kernel,3)
             erode_t = cv2.erode(dilate_t, kernel, 3)
 
             touch_region = cv2.subtract(erode_t, erode_v)
+            touch_region = cv2.bitwise_and(touch_region, table_mask)
             contours, _ = cv2.findContours(touch_region, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
             contours = list(filter(lambda x: cv2.contourArea(x) > 80, contours))
             
@@ -117,14 +138,13 @@ for i in file_list:
             # 人の手があるとき
             if 0 in classes: flag_hand = 1
             
-            
             polygon = []
             for x1, y1, x2, y2 in bboxes:
                 polygon.append(np.array([[x1, y1], [x1, y2], [x2, y2], [x2, y1]]))
             
             
             hue_mask = np.ones((480, 640), np.uint8)
-            for (cx, cy), [hue, (x,y,w,h)] in color_g.items():
+            for (cx, cy), [hue, (x,y,w,h)] in list(color_g.items()):
                 hue_img = cv2.cvtColor(img_v, cv2.COLOR_BGR2HSV)[:,:,0]
                 
                 # Hueの値が同じなら
@@ -133,10 +153,10 @@ for i in file_list:
                     classes = np.append(classes, -1)
                     bboxes = np.vstack([bboxes, np.array([x, y, x+w, y+h])])
                     cv2.rectangle(hue_mask, (x, y), (x + w, y + h), (0, 0, 0), -1) #塗りつぶし
-                    # cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2) #描画
-                    
-                # else:
-                #     del color_g[(cx, cy)]
+                    cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2) #描画
+                
+                else:
+                    del color_g[(cx, cy)]
             
             
             if seg_masks is not None:
@@ -146,7 +166,7 @@ for i in file_list:
                     m = m.astype(np.uint8)*255
                     seg_mask = cv2.bitwise_or(seg_mask, m)
                 
-
+                
                 diff = cv2.absdiff(img_v, bg_first_v)
                 diff = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
                 #YOLOで検知したものを塗りつぶし
@@ -165,72 +185,82 @@ for i in file_list:
                     # 面積が一定以上の場合にのみ矩形を描画
                     if area > 500:
                         x, y, w, h = cv2.boundingRect(cnt)
+                        
+                        x, y = max(0, x-10), max(0, y-10)
+                        w = w + 20 if x + w + 20 < 640 else w + 10
+                        h = h + 20 if y + h + 20 < 640 else h + 10
+                        
                         polygon.append(np.array([[x, y], [x, y+h], [x+w, y+h], [x+w, y]]))
                         classes = np.append(classes, -1)
                         bboxes = np.vstack([bboxes, np.array([x, y, x+w, y+h])])
-                        # cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2) #描画
+                        cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2) #描画
             
-            
-            # mask = cv2.subtract(erode_t, erode_v)
-            # mask_inv = cv2.bitwise_not(mask)
-            # back = cv2.bitwise_and(frame, frame, mask_inv)
-            # cut = cv2.bitwise_and(mask, mask, mask)
-            # cut = cv2.cvtColor(cut, cv2.COLOR_GRAY2BGR)
-            # paste = cv2.add(back, cut)
+            mask = touch_region
+            mask_inv = cv2.bitwise_not(mask)
+            back = cv2.bitwise_and(frame, frame, mask_inv)
+            cut = cv2.bitwise_and(mask, mask, mask)
+            cut = cv2.cvtColor(cut, cv2.COLOR_GRAY2BGR)
+            paste = cv2.add(back, cut)
             
 
-            with open("yolo_seg.csv", "a") as f:
-                for poly, cls, bbox in zip(polygon, classes, bboxes):
-                    for pt in points:
-                        if cv2.pointPolygonTest(poly, pt, False) >= 0 and cls != 0:
-                            time = datetime.datetime.now()
-                            data = [[time, "table", int(cls), list(bbox)]]
-                            writer = csv.writer(f)
-                            writer.writerows(data)
+            # with open("./log/test_table3_0529.csv", "a") as f:
+            #     for poly, cls, bbox in zip(polygon, classes, bboxes):
+            #         for pt in points:
+            #             if cv2.pointPolygonTest(poly, pt, False) >= 0 and cls != 0:
+            #                 time = datetime.datetime.now()
+            #                 data = [[time, "table", int(cls), list(bbox)]]
+            #                 writer = csv.writer(f)
+            #                 writer.writerows(data)
                             
-                            path = '../results/seg_thumbnails/{}'.format(int(cls))
-                            if not os.path.exists(path): os.makedirs(path)
-                            path = '../results/seg_detail/{}'.format(int(cls))
-                            if not os.path.exists(path): os.makedirs(path)
-                            path = '../results/seg_mask/{}'.format(int(cls))
-                            if not os.path.exists(path): os.makedirs(path)
+            #                 path = '../results/table3_0529_thumbnails/{}'.format(int(cls))
+            #                 if not os.path.exists(path): os.makedirs(path)
+            #                 path = '../results/table3_0529_detail/{}'.format(int(cls))
+            #                 if not os.path.exists(path): os.makedirs(path)
+            #                 path = '../results/table3_0529_mask/{}'.format(int(cls))
+            #                 if not os.path.exists(path): os.makedirs(path)
                             
-                            xmin, ymin, xmax, ymax = map(int, bbox[:4])
-                            crop = img_v_color[ymin:ymax, xmin:xmax]
-                            cv2.imwrite('../results/seg_thumbnails/{}/{}.jpg'.format(int(cls),time), crop)
+            #                 xmin, ymin, xmax, ymax = map(int, bbox[:4])
+            #                 crop = img_v_color[ymin:ymax, xmin:xmax]
+            #                 cv2.imwrite('../results/table3_0529_thumbnails/{}/{}.jpg'.format(int(cls),time), crop)
                             
-                            overview = img_v_color.copy()
-                            cv2.rectangle(overview, (xmin,ymin), (xmax,ymax), (0, 0, 255), thickness=5)
-                            cv2.imwrite('../results/seg_detail/{}/detail_{}.jpg'.format(int(cls),time), overview)
+            #                 overview = img_v_color.copy()
+            #                 cv2.rectangle(overview, (xmin,ymin), (xmax,ymax), (0, 0, 255), thickness=5)
+            #                 cv2.imwrite('../results/table3_0529_detail/{}/detail_{}.jpg'.format(int(cls),time), overview)
                             
-                            mask = cv2.bitwise_and(erode_v, erode_t)
-                            mask_inv = cv2.bitwise_not(mask)[ymin:ymax, xmin:xmax]
-                            cv2.imwrite('../results/seg_mask/{}/{}.jpg'.format(int(cls),time), mask_inv)
-                            break
+            #                 mask = cv2.bitwise_and(erode_v, erode_t)
+            #                 mask_inv = cv2.bitwise_not(mask)[ymin:ymax, xmin:xmax]
+            #                 cv2.imwrite('../results/table3_0529_mask/{}/{}.jpg'.format(int(cls),time), mask_inv)
+            #                 break
 
             # if (feature_compare(b_img_v, img_v)<12):
-            if (0 not in classes and feature_compare(b_img_v, img_v)<12):
+            if (0 not in classes and feature_compare(b_img_v, img_v)<12): #手がない時に背景更新
                 bg_v = img_v.copy()
                 b_img_v = img_v.copy()
+                # bg_t = img_t.copy()
                 
                 # 手が無くなった直後
-                if flag_hand == 1 :
+                if flag_hand == 1:
                     flag_hand = 0
                     
-                    bg_v_shade = delete_shade(bg_v)
-                    bg_diff = cv2.bitwise_xor(bg_v_shade, bg_second).astype(np.uint8)
-                    bg_diff = cv2.bitwise_and(seg_mask, bg_diff)
-                    bg_diff = cv2.bitwise_and(table_mask, bg_diff)
+                    bg_v_noshade = delete_shade(bg_v)
+                    bg_diff = cv2.bitwise_xor(bg_v_noshade, bg_before).astype(np.uint8) #1つ前の背景-今の背景
+                    bg_diff = cv2.bitwise_and(seg_mask, bg_diff) #YOLOで検知されたものを除外
+                    bg_diff = cv2.bitwise_and(table_mask, bg_diff) #tableの範囲のみで画像処理
                     bg_diff = cv2.erode(bg_diff, kernel, 1)
                     bg_diff = cv2.dilate(bg_diff, kernel, 1)
-                    bg_second = bg_v_shade
+                    bg_before = bg_v_noshade
                     
                     contours_bg, _ = cv2.findContours(bg_diff, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
                     for cnt in contours_bg:
                         area = cv2.contourArea(cnt)
                         if area > 500:
                             x, y, w, h = cv2.boundingRect(cnt)
-                            # cv2.rectangle(bg_diff, (x, y), (x + w, y + h), (255, 0, 0), 2)
+                            
+                            x, y = max(0, x-10), max(0, y-10)
+                            w = w + 20 if x + w + 20 < 640 else w + 10
+                            h = h + 20 if y + h + 20 < 640 else h + 10                          
+                            
+                            cv2.rectangle(bg_diff, (x, y), (x + w, y + h), (255, 0, 0), 2)
                             
                             M = cv2.moments(cnt)
                             cx = int(M["m10"] / M["m00"])
@@ -240,15 +270,14 @@ for i in file_list:
                             # 重心の色(Hue), bboxを保存
                             color_g[(cx, cy)] = [hue[cy, cx], (x,y,w,h)]
                         
-                    # cv2.imwrite('background/{}.jpg'.format(datetime.datetime.now()), bg_diff)
-                
+                    
             else: b_img_v = img_v.copy()
             
-            # video.write(paste)
+            video.write(paste)
 
     except StopIteration:
         break
 
-# video.release()
+video.release()
 # end = time.time()
 # print(end-start)

@@ -47,7 +47,10 @@ def is_same_object(hist1, hist2, bbox1, bbox2):
     return hist_comp + iou
 
 def analysis(input_csv_path, output_csv_path, result_dir):
-    os.remove(output_csv_path)
+    MIN_DATA_THRES = 50
+    
+    if os.path.exists(output_csv_path):
+        os.remove(output_csv_path)
     label_dict = {} # label_count: first_time, last_time, count, bbox
     hist_dict = {} # label: histのリスト
     
@@ -77,7 +80,7 @@ def analysis(input_csv_path, output_csv_path, result_dir):
                     score.append(is_same_object(hist1, hist2, bbox1, bbox2))
                 
                 # 過去に同一物体があるとき
-                if max(score) > 1.76:
+                if max(score) > 1.5:
                     index = score.index(max(score)) # スコアが最も高いもののインデックス
                     
                     # ヒストグラム更新
@@ -99,7 +102,7 @@ def analysis(input_csv_path, output_csv_path, result_dir):
                     else:
                         with open(output_csv_path, 'a', newline='') as w:
                             writer = csv.writer(w)
-                            if (label_dict[label_index][2] > 30):
+                            if (label_dict[label_index][2] > MIN_DATA_THRES):
                                 x1, y1, x2, y2 = label_dict[label_index][3]
                                 l = label_index.partition('_')
                                 line = [l[0]] + label_dict[label_index][0:3] + [x1, y1, x2, y2]
@@ -108,10 +111,6 @@ def analysis(input_csv_path, output_csv_path, result_dir):
                         label_dict[label_index] = [df_time, df_time, 1, bbox1]
                         
                         # 辞書から削除する
-                        
-                        
-                        
-                        
                         
 
                 # 過去に同一物体がないとき
@@ -122,7 +121,7 @@ def analysis(input_csv_path, output_csv_path, result_dir):
         with open(output_csv_path, 'a', newline="") as w:
             writer = csv.writer(w)
             for label_index in label_dict.keys():
-                if (label_dict[label_index][2] > 30):
+                if (label_dict[label_index][2] > MIN_DATA_THRES):
                     x1, y1, x2, y2 = label_dict[label_index][3]
                     l = label_index.partition('_')
                     line = [l[0]] + label_dict[label_index][0:3] + [x1, y1, x2, y2]
@@ -130,4 +129,6 @@ def analysis(input_csv_path, output_csv_path, result_dir):
 
 if __name__ == '__main__':
     # python analysis.py input.csv output.csv result_dir
-    analysis(input_csv_path=sys.argv[1], output_csv_path=sys.argv[2], result_dir=sys.argv[3])
+    input_csv_path = './log/' + sys.argv[1]
+    output_csv_path = './analysis/' + sys.argv[2]
+    analysis(input_csv_path, output_csv_path, result_dir=sys.argv[3])
