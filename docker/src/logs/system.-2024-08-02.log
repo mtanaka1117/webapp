@@ -1,0 +1,35 @@
+[2024-08-02T10:26:32.645] [INFO] default - Received POST request with body: {}
+[2024-08-02T10:26:32.653] [WARN] default - ::ffff:172.29.0.1 - - "GET /images/ HTTP/1.1" 304 - "" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 Edg/127.0.0.0"
+[2024-08-02T10:31:57.237] [INFO] default - Received POST request with body: {}
+[2024-08-02T10:31:57.237] [INFO] default - Received POST request with body: {}
+[2024-08-02T10:31:57.241] [INFO] default - ::ffff:172.29.0.1 - - "GET /images/5 HTTP/1.1" 200 339 "http://localhost:3000/images/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 Edg/127.0.0.0"
+[2024-08-02T10:31:57.368] [INFO] default - Received POST request with body: {}
+[2024-08-02T10:31:57.370] [ERROR] default - ::ffff:172.29.0.1 - - "GET /images/yolo_table1_detail/-1/detail_2024-08-01%2012:00:43.562141.jpg HTTP/1.1" 404 745 "http://localhost:3000/images/5" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 Edg/127.0.0.0"
+[2024-08-02T11:05:44.721] [INFO] default - Received POST request with body: {}
+[2024-08-02T11:05:44.725] [WARN] default - ::ffff:172.29.0.1 - - "GET /images/ HTTP/1.1" 304 - "" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 Edg/127.0.0.0"
+[2024-08-02T11:07:53.310] [INFO] default - Received POST request with body: {}
+[2024-08-02T11:07:53.316] [WARN] default - ::ffff:172.29.0.1 - - "GET /images/ HTTP/1.1" 304 - "" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 Edg/127.0.0.0"
+[2024-08-02T11:08:22.655] [INFO] default - Received POST request with body: {}
+[2024-08-02T11:08:22.661] [WARN] default - ::ffff:172.29.0.1 - - "GET /images/ HTTP/1.1" 304 - "" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 Edg/127.0.0.0"
+[2024-08-02T11:15:45.437] [INFO] default - Received POST request with body: {}
+[2024-08-02T11:15:45.444] [WARN] default - ::ffff:172.29.0.1 - - "GET /images/ HTTP/1.1" 304 - "" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 Edg/127.0.0.0"
+[2024-08-02T11:16:00.747] [INFO] default - Received POST request with body: {}
+[2024-08-02T11:16:00.753] [WARN] default - ::ffff:172.29.0.1 - - "GET /images/ HTTP/1.1" 304 - "" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 Edg/127.0.0.0"
+[2024-08-02T11:19:52.248] [INFO] default - Received POST request with body: {}
+[2024-08-02T11:19:52.253] [INFO] default - ::ffff:172.29.0.1 - - "GET /images/ HTTP/1.1" 200 22436 "" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 Edg/127.0.0.0"
+[2024-08-02T11:20:44.682] [INFO] default - Received POST request with body: {}
+[2024-08-02T11:20:44.687] [WARN] default - ::ffff:172.29.0.1 - - "GET /images/ HTTP/1.1" 304 - "" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 Edg/127.0.0.0"
+[2024-08-02T11:21:08.766] [INFO] default - Received POST request with body: {}
+[2024-08-02T11:21:08.770] [WARN] default - ::ffff:172.29.0.1 - - "GET /images/ HTTP/1.1" 304 - "" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 Edg/127.0.0.0"
+[2024-08-02T11:21:48.763] [INFO] default - Received POST request with body: {}
+[2024-08-02T11:21:48.767] [WARN] default - ::ffff:172.29.0.1 - - "GET /images/ HTTP/1.1" 304 - "" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 Edg/127.0.0.0"
+[2024-08-02T11:22:44.454] [INFO] default - Received POST request with body: {}
+[2024-08-02T11:22:44.458] [WARN] default - ::ffff:172.29.0.1 - - "GET /images/ HTTP/1.1" 304 - "" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 Edg/127.0.0.0"
+[2024-08-02T11:23:05.372] [INFO] default - Received POST request with body: {}
+[2024-08-02T11:23:05.376] [WARN] default - ::ffff:172.29.0.1 - - "GET /images/ HTTP/1.1" 304 - "" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 Edg/127.0.0.0"
+[2024-08-02T11:26:04.340] [INFO] default - Received POST request with body: {}
+[2024-08-02T11:26:04.344] [WARN] default - ::ffff:172.29.0.1 - - "GET /images/ HTTP/1.1" 304 - "" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 Edg/127.0.0.0"
+[2024-08-02T11:26:15.709] [INFO] default - Received POST request with body: {}
+[2024-08-02T11:26:15.713] [WARN] default - ::ffff:172.29.0.1 - - "GET /images/ HTTP/1.1" 304 - "" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 Edg/127.0.0.0"
+[2024-08-02T11:26:43.968] [INFO] default - Received POST request with body: {}
+[2024-08-02T11:26:43.973] [WARN] default - ::ffff:172.29.0.1 - - "GET /images/ HTTP/1.1" 304 - "" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 Edg/127.0.0.0"

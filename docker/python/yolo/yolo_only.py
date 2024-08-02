@@ -24,35 +24,35 @@ def feature_compare(img1, img2):
     return ret
     
 
-affine_matrix = np.array([[ 1.15775321e+00, 2.06036561e-02, -8.65530736e+01],
-                        [-3.59868529e-02, 1.16843440e+00, -4.39524932e+01]])
+# affine_matrix = np.array([[ 1.15775321e+00, 2.06036561e-02, -8.65530736e+01],
+#                         [-3.59868529e-02, 1.16843440e+00, -4.39524932e+01]])
 
-# affine_matrix = np.array([[1.15919938e+00, 7.27146534e-02, -5.70173323e+01],
-#                         [1.46108543e-04, 1.16974505e+00, -5.52789456e+01]])
+affine_matrix = np.array([[1.15919938e+00, 7.27146534e-02, -5.70173323e+01],
+                        [1.46108543e-04, 1.16974505e+00, -5.52789456e+01]])
 
 
-path = '/images/items*/*/*.jpg'
-# path = '/images/yolo+1/*/*jpg'
+# path = '/images/yolo+1/20240112_1450/*jpg'
+path = '/images/yolo+1/*/*jpg'
 
 fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
 video = cv2.VideoWriter('yolo_only.mp4',fourcc, 30.3, (640, 480))
 
 def yolo(path=path):
-    shutil.rmtree('../results/yolo_thumbnails/')
-    shutil.rmtree('../results/yolo_detail/')
-    shutil.rmtree('../results/yolo_mask/')
-    os.remove('yolo_only.csv')
+    # shutil.rmtree('../results/yolo_thumbnails/')
+    # shutil.rmtree('../results/yolo_detail/')
+    # shutil.rmtree('../results/yolo_mask/')
+    # os.remove('yolo_only_0712.csv')
     
     file_list = peekable(sorted(glob.iglob(path)))
 
     if '_V' in file_list.peek():
-        bg_v = cv2.imread(next(file_list), 0)
-        bg_t = cv2.imread(next(file_list), 0)
+        bg_v = cv2.imread(next(file_list))
+        bg_t = cv2.imread(next(file_list))
     else:
         next(file_list)
-        bg_v = cv2.imread(next(file_list), 0)
-        bg_t = cv2.imread(next(file_list), 0)
-        
+        bg_v = cv2.imread(next(file_list))
+        bg_t = cv2.imread(next(file_list))
+    
     b_img_v = bg_v.copy()
     kernel = np.ones((5,5),np.uint8)
 
@@ -61,19 +61,21 @@ def yolo(path=path):
     for i in file_list:
         try:
             if '_V' in i and '_T' in file_list.peek():
-                img_v = cv2.imread(i, 0)
+                img_v = cv2.imread(i)
                 img_v_color = cv2.imread(i)
                 diff_v = cv2.absdiff(img_v, bg_v)
-                _, img_th_v = cv2.threshold(diff_v,30,255,cv2.THRESH_BINARY)
-                dilate_v = cv2.dilate(img_th_v,kernel,iterations=5)
-                erode_v = cv2.erode(dilate_v, kernel, 2)
+                diff_v = cv2.cvtColor(diff_v, cv2.COLOR_BGR2GRAY)
+                _, img_th_v = cv2.threshold(diff_v,12,255,cv2.THRESH_BINARY)
+                dilate_v = cv2.dilate(img_th_v,kernel,3)
+                erode_v = cv2.erode(dilate_v, kernel, 3)
 
-                img_t = cv2.imread(next(file_list), 0)
+                img_t = cv2.imread(next(file_list))
                 diff_t = cv2.absdiff(img_t, bg_t)
+                diff_t = cv2.cvtColor(diff_t, cv2.COLOR_BGR2GRAY)
                 affined_t = cv2.warpAffine(diff_t, affine_matrix, (img_v.shape[1], img_v.shape[0]))
                 _, img_th_t = cv2.threshold(affined_t,12,255,cv2.THRESH_BINARY)
                 dilate_t = cv2.dilate(img_th_t,kernel,3)
-                erode_t = cv2.erode(dilate_t, kernel, 2)
+                erode_t = cv2.erode(dilate_t, kernel, 3)
                 
                 touch_region = cv2.subtract(erode_t, erode_v)
                 contours, _ = cv2.findContours(touch_region, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
@@ -87,7 +89,7 @@ def yolo(path=path):
                 frame = pred[0].plot()
                 mask_inv = cv2.bitwise_not(touch_region)
                 
-                with open("yolo_only.csv", "a") as f:
+                with open("yolo_only_0712.csv", "a") as f:
                     for cls, bbox in zip(classes, bboxes):
                         #物体検知履歴
                         if cls != 0:

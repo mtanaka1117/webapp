@@ -95,7 +95,7 @@ def analysis(input_csv_path, output_csv_path, result_dir):
                     label_dict[label_index][3] = [round((n*y+x)/(n+1)) for x, y in zip(bbox1, bbox_avg)]
             
                     # 最終時刻と確認された時刻の差が一定以内であれば最終時刻を更新
-                    if df_time - label_dict[label_index][1] < datetime.timedelta(seconds=30):
+                    if df_time - label_dict[label_index][1] < datetime.timedelta(seconds=20):
                         label_dict[label_index][1] = df_time
 
                     #物体が一定時間を超えて再び確認された場合

@@ -13,6 +13,7 @@ conn = mysql.connector.connect(
 )
 
 
+# python execute.py -i test_table_0527.csv -o analysis_test_table_0527.csv -dir table_0527
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--input')

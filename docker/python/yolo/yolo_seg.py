@@ -18,10 +18,13 @@ def feature_compare(img1, img2):
     kp1, des1 = sift.detectAndCompute(img1, None)
     kp2, des2 = sift.detectAndCompute(img2, None)
 
-    matches = bf.match(des1, des2)
-    dist = [m.distance for m in matches]
-    ret = sum(dist) / len(dist)
-    return ret
+    if des1 is not None and des2 is not None:
+        matches = bf.match(des1, des2)
+        dist = [m.distance for m in matches]
+        ret = sum(dist) / len(dist)
+        return ret
+    else:
+        return 1000
 
 
 ksize = 29
@@ -39,34 +42,45 @@ def delete_shade(img):
 # affine_matrix = np.array([[ 1.15775321e+00, 2.06036561e-02, -8.65530736e+01],
 #                         [-3.59868529e-02, 1.16843440e+00, -4.39524932e+01]])
 
-affine_matrix = np.array([[1.15919938e+00, 7.27146534e-02, -5.70173323e+01],
-                        [1.46108543e-04, 1.16974505e+00, -5.52789456e+01]])
+# affine_matrix = np.array([[1.15919938e+00, 7.27146534e-02, -5.70173323e+01],
+#                         [1.46108543e-04, 1.16974505e+00, -5.52789456e+01]])
 
+# table1
+# affine_matrix = np.array([[ 1.18039980e+00,  7.09369517e-02, -8.98547621e+01],
+#                         [-3.24900007e-02,  1.16626013e+00, -3.75450685e+01]])
+
+# table2
+affine_matrix = np.array([[ 1.17217602e+00,  8.45247542e-02, -9.23932162e+01],
+                        [-7.13793184e-02,  1.16531538e+00, -2.59984213e+01]])
+
+# table3
+# affine_matrix = np.array([[ 1.17180997e+00,  1.16642998e-01, -9.13738998e+01],
+#                         [-4.30616537e-02,  1.16553808e+00, -3.05474337e+01]])
 
 # path = '/images/yolo+1/20240112_1450/*jpg'
 # path = '/images/yolo+1/*/*jpg'
-path = '/images/data/0701/table/*jpg'
+path = '/images/data/0731/table2/*jpg'
 
 file_list = peekable(sorted(glob.iglob(path)))
 
 fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
-video = cv2.VideoWriter('test_table_0701.mp4',fourcc, 30.3, (640, 480), isColor=True)
+video = cv2.VideoWriter('test_table2.mp4',fourcc, 30.3, (640, 480), isColor=True)
 
-if '_V' in file_list.peek():
-    bg_v = cv2.imread(next(file_list))
-    bg_t = cv2.imread(next(file_list))
-else:
-    next(file_list)
-    bg_v = cv2.imread(next(file_list))
-    bg_t = cv2.imread(next(file_list))
-
-# if '_T' in file_list.peek():
-#     bg_t = cv2.imread(next(file_list))
+# if '_V' in file_list.peek():
 #     bg_v = cv2.imread(next(file_list))
+#     bg_t = cv2.imread(next(file_list))
 # else:
 #     next(file_list)
-#     bg_t = cv2.imread(next(file_list))
 #     bg_v = cv2.imread(next(file_list))
+#     bg_t = cv2.imread(next(file_list))
+
+if '_T' in file_list.peek():
+    bg_t = cv2.imread(next(file_list))
+    bg_v = cv2.imread(next(file_list))
+else:
+    next(file_list)
+    bg_t = cv2.imread(next(file_list))
+    bg_v = cv2.imread(next(file_list))
 
 # 1つ前のフレーム
 b_img_v = bg_v.copy()
@@ -78,21 +92,20 @@ kernel = np.ones((5,5), np.uint8)
 # 初期背景（何も置かれていない）
 # bg_first_v = bg_v.copy()
 # bg_first_v_gray = cv2.cvtColor(bg_first_v, cv2.COLOR_BGR2GRAY)
-bg_first_v = cv2.imread('/images/data/0701/test_table_V.jpg')
+bg_first_v = cv2.imread('/images/data/0731/table2/test_table2_V.jpg')
 bg_first_v_gray = cv2.cvtColor(bg_first_v, cv2.COLOR_BGR2GRAY)
 _, table_mask = cv2.threshold(bg_first_v_gray, 80, 255, cv2.THRESH_BINARY)
 
-bg_first_v = bg_t.copy()
 
 model = YOLO("yolov8x-seg.pt")
 flag_hand = 0
 color_g = {}
 
 
-# shutil.rmtree('../results/table_0527_thumbnails/')
-# shutil.rmtree('../results/table_0527_detail/')
-# shutil.rmtree('../results/table_0527_mask/')
-# os.remove('./log/test_table_0527.csv')
+# shutil.rmtree('../results/table2_thumbnails/')
+# shutil.rmtree('../results/table2_detail/')
+# shutil.rmtree('../results/table2_mask/')
+# os.remove('./log/test_table2.csv')
 
 
 for i in file_list:
@@ -127,7 +140,7 @@ for i in file_list:
                 cy = M["m01"] / M["m00"]
                 points.append((cx, cy))
 
-
+            # YOLO
             pred = model.predict(img_v_color, classes=[0, 25, 26, 28, 39, 41, 64, 65, 67, 73, 74, 76])
             frame = pred[0].plot()
             bboxes = pred[0].boxes.xyxy.cpu().numpy()
@@ -154,7 +167,6 @@ for i in file_list:
                     bboxes = np.vstack([bboxes, np.array([x, y, x+w, y+h])])
                     cv2.rectangle(hue_mask, (x, y), (x + w, y + h), (0, 0, 0), -1) #塗りつぶし
                     cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2) #描画
-                
                 else:
                     del color_g[(cx, cy)]
             
@@ -173,7 +185,7 @@ for i in file_list:
                 seg_mask = cv2.bitwise_not(seg_mask)
                 seg_mask = cv2.dilate(seg_mask, kernel, 5)
 
-                _, thres = cv2.threshold(diff,20,255,cv2.THRESH_BINARY)
+                _, thres = cv2.threshold(diff,10,255,cv2.THRESH_BINARY)
                 thres = cv2.bitwise_and(thres, seg_mask)
                 thres = cv2.bitwise_and(thres, hue_mask)
                 thres = cv2.bitwise_and(thres, table_mask)
@@ -183,7 +195,7 @@ for i in file_list:
                 for cnt in contours2:
                     area = cv2.contourArea(cnt)
                     # 面積が一定以上の場合にのみ矩形を描画
-                    if area > 500:
+                    if area > 300:
                         x, y, w, h = cv2.boundingRect(cnt)
                         
                         x, y = max(0, x-10), max(0, y-10)
@@ -203,34 +215,34 @@ for i in file_list:
             paste = cv2.add(back, cut)
             
 
-            # with open("./log/test_table3_0529.csv", "a") as f:
-            #     for poly, cls, bbox in zip(polygon, classes, bboxes):
-            #         for pt in points:
-            #             if cv2.pointPolygonTest(poly, pt, False) >= 0 and cls != 0:
-            #                 time = datetime.datetime.now()
-            #                 data = [[time, "table", int(cls), list(bbox)]]
-            #                 writer = csv.writer(f)
-            #                 writer.writerows(data)
+            with open("./log/test_table2.csv", "a") as f:
+                for poly, cls, bbox in zip(polygon, classes, bboxes):
+                    for pt in points:
+                        if cv2.pointPolygonTest(poly, pt, False) >= 0 and cls != 0:
+                            time = datetime.datetime.now()
+                            data = [[time, "table2", int(cls), list(bbox)]]
+                            writer = csv.writer(f)
+                            writer.writerows(data)
                             
-            #                 path = '../results/table3_0529_thumbnails/{}'.format(int(cls))
-            #                 if not os.path.exists(path): os.makedirs(path)
-            #                 path = '../results/table3_0529_detail/{}'.format(int(cls))
-            #                 if not os.path.exists(path): os.makedirs(path)
-            #                 path = '../results/table3_0529_mask/{}'.format(int(cls))
-            #                 if not os.path.exists(path): os.makedirs(path)
+                            path = '../results/table2_thumbnails/{}'.format(int(cls))
+                            if not os.path.exists(path): os.makedirs(path)
+                            path = '../results/table2_detail/{}'.format(int(cls))
+                            if not os.path.exists(path): os.makedirs(path)
+                            path = '../results/table2_mask/{}'.format(int(cls))
+                            if not os.path.exists(path): os.makedirs(path)
                             
-            #                 xmin, ymin, xmax, ymax = map(int, bbox[:4])
-            #                 crop = img_v_color[ymin:ymax, xmin:xmax]
-            #                 cv2.imwrite('../results/table3_0529_thumbnails/{}/{}.jpg'.format(int(cls),time), crop)
+                            xmin, ymin, xmax, ymax = map(int, bbox[:4])
+                            crop = img_v_color[ymin:ymax, xmin:xmax]
+                            cv2.imwrite('../results/table2_thumbnails/{}/{}.jpg'.format(int(cls),time), crop)
                             
-            #                 overview = img_v_color.copy()
-            #                 cv2.rectangle(overview, (xmin,ymin), (xmax,ymax), (0, 0, 255), thickness=5)
-            #                 cv2.imwrite('../results/table3_0529_detail/{}/detail_{}.jpg'.format(int(cls),time), overview)
+                            overview = img_v_color.copy()
+                            cv2.rectangle(overview, (xmin,ymin), (xmax,ymax), (0, 0, 255), thickness=5)
+                            cv2.imwrite('../results/table2_detail/{}/detail_{}.jpg'.format(int(cls),time), overview)
                             
-            #                 mask = cv2.bitwise_and(erode_v, erode_t)
-            #                 mask_inv = cv2.bitwise_not(mask)[ymin:ymax, xmin:xmax]
-            #                 cv2.imwrite('../results/table3_0529_mask/{}/{}.jpg'.format(int(cls),time), mask_inv)
-            #                 break
+                            mask = cv2.bitwise_and(erode_v, erode_t)
+                            mask_inv = cv2.bitwise_not(mask)[ymin:ymax, xmin:xmax]
+                            cv2.imwrite('../results/table2_mask/{}/{}.jpg'.format(int(cls),time), mask_inv)
+                            break
 
             # if (feature_compare(b_img_v, img_v)<12):
             if (0 not in classes and feature_compare(b_img_v, img_v)<12): #手がない時に背景更新
@@ -253,7 +265,7 @@ for i in file_list:
                     contours_bg, _ = cv2.findContours(bg_diff, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
                     for cnt in contours_bg:
                         area = cv2.contourArea(cnt)
-                        if area > 500:
+                        if area > 300:
                             x, y, w, h = cv2.boundingRect(cnt)
                             
                             x, y = max(0, x-10), max(0, y-10)

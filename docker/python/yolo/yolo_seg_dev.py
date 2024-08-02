@@ -42,18 +42,12 @@ def delete_shade(img):
 # affine_matrix = np.array([[1.15919938e+00, 7.27146534e-02, -5.70173323e+01],
 #                         [1.46108543e-04, 1.16974505e+00, -5.52789456e+01]])
 
-
-# affine_matrix = np.array([[ 1.17377987e+00,  1.09264399e-01, -6.69915996e+01],
-#                         [-4.63893244e-02,  1.17198599e+00, -3.92077411e+01]])
-
-# shelf
-affine_matrix = np.array([[ 1.23266374e+00,  2.08022944e-02, -5.02312601e+01],
-                        [-6.53812039e-02,  1.15081614e+00, -1.82666477e+01]])
+affine_matrix = np.array([[ 1.16355708e+00,  1.14628314e-01, -8.54767125e+01],
+                        [-4.80050532e-02,  1.16542420e+00, -3.36634455e+01]])
 
 # path = '/images/yolo+1/20240112_1450/*jpg'
 # path = '/images/yolo+1/*/*jpg'
-# path = '/images/data/0524/table3/*.jpg'
-path = '/images/data/0527/shelf4/*jpg'
+path = '/images/data/0712/table/*jpg'
 
 file_list = peekable(sorted(glob.iglob(path)))
 
@@ -78,7 +72,7 @@ else:
     
 # b_img_v = bg_first_v = bg_v.copy()
 b_img_v = bg_v.copy()
-bg_first_v = cv2.imread('/images/data/0524/bg_table_V.jpg')
+bg_first_v = cv2.imread('/images/data/0712/bg_table_V.jpg')
 bg_second = delete_shade(bg_v)
 kernel = np.ones((5,5), np.uint8)
 
@@ -144,7 +138,7 @@ for i in file_list:
             
             
             hue_mask = np.ones((480, 640), np.uint8)
-            for (cx, cy), [hue, (x,y,w,h)] in color_g.items():
+            for (cx, cy), [hue, (x,y,w,h)] in list(color_g.items()):
                 hue_img = cv2.cvtColor(img_v, cv2.COLOR_BGR2HSV)[:,:,0]
                 
                 # Hueの値が同じなら
@@ -154,9 +148,9 @@ for i in file_list:
                     bboxes = np.vstack([bboxes, np.array([x, y, x+w, y+h])])
                     cv2.rectangle(hue_mask, (x, y), (x + w, y + h), (0, 0, 0), -1) #塗りつぶし
                     cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2) #描画
-                    
-                # else:
-                #     del color_g[(cx, cy)]
+                
+                else:
+                    del color_g[(cx, cy)]
             
             
             if seg_masks is not None:
