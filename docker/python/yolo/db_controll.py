@@ -29,9 +29,9 @@ def insert_csv_data(input_csv, conn=conn):
   # with open('analysis_no_hist.csv') as f:
   with open(input_csv) as f:
       for line in f:
-          label, first_time, last_time, count, bbox_x1, bbox_y1, bbox_x2, bbox_y2 = map(str, line.split(','))
-          cur.execute("""INSERT INTO csv (id, label, first_time, last_time, count, bbox_x1, bbox_y1, bbox_x2, bbox_y2) 
-                      values(%s,%s,%s,%s,%s,%s,%s,%s,%s);""", (last_id, label, first_time, last_time, count, bbox_x1, bbox_y1, bbox_x2, bbox_y2))
+          label, first_time, last_time, count, bbox_x1, bbox_y1, bbox_x2, bbox_y2, place = map(str, line.split(','))
+          cur.execute("""INSERT INTO csv (id, label, first_time, last_time, count, bbox_x1, bbox_y1, bbox_x2, bbox_y2, place) 
+                      values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);""", (last_id, label, first_time, last_time, count, bbox_x1, bbox_y1, bbox_x2, bbox_y2, place))
           # label, first_time, last_time, count, bbox_x1, bbox_y1, bbox_x2, bbox_y2, thumb_time, max_area = map(str, line.split(','))
           # cur.execute("""INSERT INTO csv (id, label, first_time, last_time, count, bbox_x1, bbox_y1, bbox_x2, bbox_y2, thumb_time, max_area) 
           #             values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);""", (last_id, label, first_time, last_time, count, bbox_x1, bbox_y1, bbox_x2, bbox_y2, thumb_time, max_area))

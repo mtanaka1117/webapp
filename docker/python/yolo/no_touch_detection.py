@@ -41,23 +41,25 @@ def delete_shade(img):
 # start = time.time()
 
 # table1
-affine_matrix = np.array([[ 1.18039980e+00,  7.09369517e-02, -8.98547621e+01],
-                        [-3.24900007e-02,  1.16626013e+00, -3.75450685e+01]])
+# affine_matrix = np.array([[ 1.18039980e+00,  7.09369517e-02, -8.98547621e+01],
+#                         [-3.24900007e-02,  1.16626013e+00, -3.75450685e+01]])
 
 # table2
-# affine_matrix = np.array([[ 1.17217602e+00,  8.45247542e-02, -9.23932162e+01],
-#                         [-7.13793184e-02,  1.16531538e+00, -2.59984213e+01]])
+affine_matrix = np.array([[ 1.17217602e+00,  8.45247542e-02, -9.23932162e+01],
+                        [-7.13793184e-02,  1.16531538e+00, -2.59984213e+01]])
 
 # table3
-# affine_matrix = np.array([[ 1.18129821e+00,  1.01780132e-01, -1.01256520e+02],
-#                         [-4.96726637e-02,  1.16948717e+00, -3.50429676e+01]])
+# affine_matrix = np.array([[ 1.17012871e+00,  1.08532231e-01, -8.49767956e+01],
+#                         [-3.78228456e-02,  1.17486284e+00, -3.45068805e+01]])
 
 # path = '/images/yolo+1/20240112_1450/*jpg'
 # path = '/images/yolo+1/*/*jpg'
-path = '/images/data/0731/table1/*jpg'
+path = '/images/data/0731/table2/*jpg'
 
 file_list = peekable(sorted(glob.iglob(path)))
 
+fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
+video = cv2.VideoWriter('test_table2.mp4',fourcc, 30.3, (640, 480), isColor=True)
 
 # if '_V' in file_list.peek():
 #     bg_v = cv2.imread(next(file_list))
@@ -85,7 +87,7 @@ kernel = np.ones((5,5), np.uint8)
 # 初期背景（何も置かれていない）
 # bg_first_v = bg_v.copy()
 # bg_first_v_gray = cv2.cvtColor(bg_first_v, cv2.COLOR_BGR2GRAY)
-bg_first_v = cv2.imread('/images/data/0731/table1/test_table1_V.jpg')
+bg_first_v = cv2.imread('/images/data/0731/table2/test_table2_V.jpg')
 bg_first_v_gray = cv2.cvtColor(bg_first_v, cv2.COLOR_BGR2GRAY)
 _, table_mask = cv2.threshold(bg_first_v_gray, 80, 255, cv2.THRESH_BINARY)
 
@@ -95,10 +97,9 @@ flag_hand = 0
 color_g = {}
 
 
-shutil.rmtree('../results/yolo_table1_thumbnails/')
-shutil.rmtree('../results/yolo_table1_detail/')
-shutil.rmtree('../results/yolo_table1_mask/')
-os.remove('./log/yolo_table1.csv')
+shutil.rmtree('../results/yolo_table2_thumbnails/')
+shutil.rmtree('../results/yolo_table2_detail/')
+os.remove('./log/yolo_table2.csv')
 
 
 for i in file_list:
@@ -111,14 +112,6 @@ for i in file_list:
             _, img_th_v = cv2.threshold(diff_v,12,255,cv2.THRESH_BINARY)
             dilate_v = cv2.dilate(img_th_v,kernel,3)
             erode_v = cv2.erode(dilate_v, kernel, 3)
-
-            img_t = cv2.imread(next(file_list))
-            diff_t = cv2.absdiff(img_t, bg_t)
-            diff_t = cv2.cvtColor(diff_t, cv2.COLOR_BGR2GRAY)
-            affined_t = cv2.warpAffine(diff_t, affine_matrix, (img_v.shape[1], img_v.shape[0]))
-            _, img_th_t = cv2.threshold(affined_t,10,255,cv2.THRESH_BINARY)
-            dilate_t = cv2.dilate(img_th_t,kernel,3)
-            erode_t = cv2.erode(dilate_t, kernel, 3)
 
             # YOLO
             pred = model.predict(img_v_color, classes=[0, 25, 26, 28, 39, 41, 64, 65, 67, 73, 74, 76])
@@ -165,7 +158,7 @@ for i in file_list:
                 seg_mask = cv2.bitwise_not(seg_mask)
                 seg_mask = cv2.dilate(seg_mask, kernel, 5)
 
-                _, thres = cv2.threshold(diff,10,255,cv2.THRESH_BINARY)
+                _, thres = cv2.threshold(diff,5,255,cv2.THRESH_BINARY)
                 thres = cv2.bitwise_and(thres, seg_mask)
                 thres = cv2.bitwise_and(thres, hue_mask)
                 thres = cv2.bitwise_and(thres, table_mask)
@@ -188,32 +181,32 @@ for i in file_list:
                         cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2) #描画
             
             
-            if flag_hand != 1:
-                with open("./log/yolo_table1.csv", "a") as f:
+            if 0 not in classes:
+                with open("./log/yolo_table2.csv", "a") as f:
                     for cls, bbox in zip(classes, bboxes):
                         time = datetime.datetime.now()
-                        data = [[time, "table1", int(cls), list(bbox)]]
+                        data = [[time, "table2", int(cls), list(bbox)]]
                         writer = csv.writer(f)
                         writer.writerows(data)
                         
-                        path = '../results/yolo_table1_thumbnails/{}'.format(int(cls))
+                        path = '../results/yolo_table2_thumbnails/{}'.format(int(cls))
                         if not os.path.exists(path): os.makedirs(path)
-                        path = '../results/yolo_table1_detail/{}'.format(int(cls))
+                        path = '../results/yolo_table2_detail/{}'.format(int(cls))
                         if not os.path.exists(path): os.makedirs(path)
-                        path = '../results/yolo_table1_mask/{}'.format(int(cls))
-                        if not os.path.exists(path): os.makedirs(path)
+                        # path = '../results/yolo_table2_mask/{}'.format(int(cls))
+                        # if not os.path.exists(path): os.makedirs(path)
                         
                         xmin, ymin, xmax, ymax = map(int, bbox[:4])
                         crop = img_v_color[ymin:ymax, xmin:xmax]
-                        cv2.imwrite('../results/yolo_table1_thumbnails/{}/{}.jpg'.format(int(cls),time), crop)
+                        cv2.imwrite('../results/yolo_table2_thumbnails/{}/{}.jpg'.format(int(cls),time), crop)
                         
                         overview = img_v_color.copy()
                         cv2.rectangle(overview, (xmin,ymin), (xmax,ymax), (0, 0, 255), thickness=5)
-                        cv2.imwrite('../results/yolo_table1_detail/{}/detail_{}.jpg'.format(int(cls),time), overview)
+                        cv2.imwrite('../results/yolo_table2_detail/{}/detail_{}.jpg'.format(int(cls),time), overview)
                         
-                        mask = cv2.bitwise_and(erode_v, erode_t)
-                        mask_inv = cv2.bitwise_not(mask)[ymin:ymax, xmin:xmax]
-                        cv2.imwrite('../results/yolo_table1_mask/{}/{}.jpg'.format(int(cls),time), mask_inv)
+                        # mask = np.ones((xmax - xmin, ymax - ymin), np.uint8)*255
+                        # mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
+                        # cv2.imwrite('../results/yolo_table2_mask/{}/{}.jpg'.format(int(cls),time), mask)
 
             # if (feature_compare(b_img_v, img_v)<12):
             if (0 not in classes and feature_compare(b_img_v, img_v)<12): #手がない時に背景更新
@@ -256,8 +249,12 @@ for i in file_list:
                     
             else: b_img_v = img_v.copy()
             
+            video.write(frame)
+
     except StopIteration:
         break
+
+video.release()
 
 # end = time.time()
 # print(end-start)

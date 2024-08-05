@@ -50,21 +50,21 @@ def delete_shade(img):
 #                         [-3.24900007e-02,  1.16626013e+00, -3.75450685e+01]])
 
 # table2
-affine_matrix = np.array([[ 1.17217602e+00,  8.45247542e-02, -9.23932162e+01],
-                        [-7.13793184e-02,  1.16531538e+00, -2.59984213e+01]])
+# affine_matrix = np.array([[ 1.17217602e+00,  8.45247542e-02, -9.23932162e+01],
+#                         [-7.13793184e-02,  1.16531538e+00, -2.59984213e+01]])
 
 # table3
-# affine_matrix = np.array([[ 1.17180997e+00,  1.16642998e-01, -9.13738998e+01],
-#                         [-4.30616537e-02,  1.16553808e+00, -3.05474337e+01]])
+affine_matrix = np.array([[ 1.17012871e+00,  1.08532231e-01, -8.49767956e+01],
+                        [-3.78228456e-02,  1.17486284e+00, -3.45068805e+01]])
 
 # path = '/images/yolo+1/20240112_1450/*jpg'
 # path = '/images/yolo+1/*/*jpg'
-path = '/images/data/0731/table2/*jpg'
+path = '/images/data/0731/table3/*jpg'
 
 file_list = peekable(sorted(glob.iglob(path)))
 
 fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
-video = cv2.VideoWriter('test_table2.mp4',fourcc, 30.3, (640, 480), isColor=True)
+video = cv2.VideoWriter('test_table3.mp4',fourcc, 30.3, (640, 480), isColor=True)
 
 # if '_V' in file_list.peek():
 #     bg_v = cv2.imread(next(file_list))
@@ -92,7 +92,7 @@ kernel = np.ones((5,5), np.uint8)
 # 初期背景（何も置かれていない）
 # bg_first_v = bg_v.copy()
 # bg_first_v_gray = cv2.cvtColor(bg_first_v, cv2.COLOR_BGR2GRAY)
-bg_first_v = cv2.imread('/images/data/0731/table2/test_table2_V.jpg')
+bg_first_v = cv2.imread('/images/data/0731/table3/test_table3_V.jpg')
 bg_first_v_gray = cv2.cvtColor(bg_first_v, cv2.COLOR_BGR2GRAY)
 _, table_mask = cv2.threshold(bg_first_v_gray, 80, 255, cv2.THRESH_BINARY)
 
@@ -102,10 +102,10 @@ flag_hand = 0
 color_g = {}
 
 
-# shutil.rmtree('../results/table2_thumbnails/')
-# shutil.rmtree('../results/table2_detail/')
-# shutil.rmtree('../results/table2_mask/')
-# os.remove('./log/test_table2.csv')
+# shutil.rmtree('../results/table3_thumbnails/')
+# shutil.rmtree('../results/table3_detail/')
+# shutil.rmtree('../results/table3_mask/')
+# os.remove('./log/test_table3.csv')
 
 
 for i in file_list:
@@ -215,34 +215,34 @@ for i in file_list:
             paste = cv2.add(back, cut)
             
 
-            with open("./log/test_table2.csv", "a") as f:
-                for poly, cls, bbox in zip(polygon, classes, bboxes):
-                    for pt in points:
-                        if cv2.pointPolygonTest(poly, pt, False) >= 0 and cls != 0:
-                            time = datetime.datetime.now()
-                            data = [[time, "table2", int(cls), list(bbox)]]
-                            writer = csv.writer(f)
-                            writer.writerows(data)
+            # with open("./log/test_table3.csv", "a") as f:
+            #     for poly, cls, bbox in zip(polygon, classes, bboxes):
+            #         for pt in points:
+            #             if cv2.pointPolygonTest(poly, pt, False) >= 0 and cls != 0:
+            #                 time = datetime.datetime.now()
+            #                 data = [[time, "table3", int(cls), list(bbox)]]
+            #                 writer = csv.writer(f)
+            #                 writer.writerows(data)
                             
-                            path = '../results/table2_thumbnails/{}'.format(int(cls))
-                            if not os.path.exists(path): os.makedirs(path)
-                            path = '../results/table2_detail/{}'.format(int(cls))
-                            if not os.path.exists(path): os.makedirs(path)
-                            path = '../results/table2_mask/{}'.format(int(cls))
-                            if not os.path.exists(path): os.makedirs(path)
+            #                 path = '../results/table3_thumbnails/{}'.format(int(cls))
+            #                 if not os.path.exists(path): os.makedirs(path)
+            #                 path = '../results/table3_detail/{}'.format(int(cls))
+            #                 if not os.path.exists(path): os.makedirs(path)
+            #                 path = '../results/table3_mask/{}'.format(int(cls))
+            #                 if not os.path.exists(path): os.makedirs(path)
                             
-                            xmin, ymin, xmax, ymax = map(int, bbox[:4])
-                            crop = img_v_color[ymin:ymax, xmin:xmax]
-                            cv2.imwrite('../results/table2_thumbnails/{}/{}.jpg'.format(int(cls),time), crop)
+            #                 xmin, ymin, xmax, ymax = map(int, bbox[:4])
+            #                 crop = img_v_color[ymin:ymax, xmin:xmax]
+            #                 cv2.imwrite('../results/table3_thumbnails/{}/{}.jpg'.format(int(cls),time), crop)
                             
-                            overview = img_v_color.copy()
-                            cv2.rectangle(overview, (xmin,ymin), (xmax,ymax), (0, 0, 255), thickness=5)
-                            cv2.imwrite('../results/table2_detail/{}/detail_{}.jpg'.format(int(cls),time), overview)
+            #                 overview = img_v_color.copy()
+            #                 cv2.rectangle(overview, (xmin,ymin), (xmax,ymax), (0, 0, 255), thickness=5)
+            #                 cv2.imwrite('../results/table3_detail/{}/detail_{}.jpg'.format(int(cls),time), overview)
                             
-                            mask = cv2.bitwise_and(erode_v, erode_t)
-                            mask_inv = cv2.bitwise_not(mask)[ymin:ymax, xmin:xmax]
-                            cv2.imwrite('../results/table2_mask/{}/{}.jpg'.format(int(cls),time), mask_inv)
-                            break
+            #                 mask = cv2.bitwise_and(erode_v, erode_t)
+            #                 mask_inv = cv2.bitwise_not(mask)[ymin:ymax, xmin:xmax]
+            #                 cv2.imwrite('../results/table3_mask/{}/{}.jpg'.format(int(cls),time), mask_inv)
+            #                 break
 
             # if (feature_compare(b_img_v, img_v)<12):
             if (0 not in classes and feature_compare(b_img_v, img_v)<12): #手がない時に背景更新

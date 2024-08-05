@@ -58,6 +58,7 @@ def analysis(input_csv_path, output_csv_path, result_dir):
         reader = csv.reader(f)
         for row in reader:
             label = row[2]
+            place = row[1]
             df_time = datetime.datetime.strptime(row[0], '%Y-%m-%d %H:%M:%S.%f')
             bbox1 = [int(float(c)) for c in row[3][1:-1].split(',')]
             
@@ -80,7 +81,7 @@ def analysis(input_csv_path, output_csv_path, result_dir):
                     score.append(is_same_object(hist1, hist2, bbox1, bbox2))
                 
                 # 過去に同一物体があるとき
-                if max(score) > 1.5:
+                if max(score) > 1.1:
                     index = score.index(max(score)) # スコアが最も高いもののインデックス
                     
                     # ヒストグラム更新
@@ -95,7 +96,7 @@ def analysis(input_csv_path, output_csv_path, result_dir):
                     label_dict[label_index][3] = [round((n*y+x)/(n+1)) for x, y in zip(bbox1, bbox_avg)]
             
                     # 最終時刻と確認された時刻の差が一定以内であれば最終時刻を更新
-                    if df_time - label_dict[label_index][1] < datetime.timedelta(seconds=20):
+                    if df_time - label_dict[label_index][1] < datetime.timedelta(seconds=10):
                         label_dict[label_index][1] = df_time
 
                     #物体が一定時間を超えて再び確認された場合
@@ -105,7 +106,7 @@ def analysis(input_csv_path, output_csv_path, result_dir):
                             if (label_dict[label_index][2] > MIN_DATA_THRES):
                                 x1, y1, x2, y2 = label_dict[label_index][3]
                                 l = label_index.partition('_')
-                                line = [l[0]] + label_dict[label_index][0:3] + [x1, y1, x2, y2]
+                                line = [l[0]] + label_dict[label_index][0:3] + [x1, y1, x2, y2] +[place]
                                 writer.writerow(line)
                         
                         label_dict[label_index] = [df_time, df_time, 1, bbox1]
@@ -124,7 +125,7 @@ def analysis(input_csv_path, output_csv_path, result_dir):
                 if (label_dict[label_index][2] > MIN_DATA_THRES):
                     x1, y1, x2, y2 = label_dict[label_index][3]
                     l = label_index.partition('_')
-                    line = [l[0]] + label_dict[label_index][0:3] + [x1, y1, x2, y2]
+                    line = [l[0]] + label_dict[label_index][0:3] + [x1, y1, x2, y2] + [place]
                     writer.writerow(line)
 
 if __name__ == '__main__':
