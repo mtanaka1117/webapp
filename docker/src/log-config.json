@@ -17,7 +17,7 @@
             "console",
             "system"
         ],
-        "level": "info"
+        "level": "all"
     }
     }
 }

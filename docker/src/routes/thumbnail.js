@@ -12,7 +12,7 @@ router.use(log4js.connectLogger(accessLogger, {level: 'auto'}));
 function logPostMessage(req, res, next) {
     accessLogger.info(`Received POST request with body: ${JSON.stringify(req.body)}`);
     next();
-    }
+};
 
 // ミドルウェアとしてPOSTメッセージの内容を記録
 router.use(express.json());
