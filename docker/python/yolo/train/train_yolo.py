@@ -4,4 +4,4 @@ from ultralytics import YOLO
 model = YOLO("../yolov8x.pt")  # load a pretrained model (recommended for training)
 
 # Train the model
-results = model.train(data="Objects365.yaml", epochs=100, imgsz=640)
+results = model.train(data="Objects365.yaml", epochs=10, imgsz=640, name="subset", fraction=0.01)

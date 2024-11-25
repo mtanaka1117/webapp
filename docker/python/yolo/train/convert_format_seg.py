@@ -16,7 +16,7 @@ def convert_coco_to_yolo_segmentation(coco_json, output_dir):
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    for split in ["train", "test"]:
+    for split in ["train", "val"]:
         for image in coco.loadImgs(coco.getImgIds()):
             label_file = output_dir / f"{split}" / f"{Path(image['file_name'])}.txt"
             with open(label_file, "w") as f:
@@ -25,9 +25,9 @@ def convert_coco_to_yolo_segmentation(coco_json, output_dir):
 
                 for ann in annotations:
                     # セグメンテーションポイントを取得
-                    segmentation = ann.get('segmentation', [])
-                    if isinstance(segmentation, list):  # Polygons形式を想定
-                        segmentation_points = ' '.join(map(str, segmentation[0]))  # 1つのリストにする
+                    # segmentation = ann.get('segmentation', [])
+                    # if isinstance(segmentation, list): 
+                    #     segmentation_points = ' '.join(map(str, segmentation[0]))  # 1つのリストにする
 
                     width, height = image["width"], image["height"]
                     x, y, w, h = ann['bbox']
@@ -37,7 +37,7 @@ def convert_coco_to_yolo_segmentation(coco_json, output_dir):
                     class_id = ann['category_id'] - 1  # YOLOではクラスIDは0ベース
 
                     # YOLO形式で書き込む
-                    f.write(f"{class_id} {x:.5f} {y:.5f} {w:.5f} {h:.5f} {segmentation_points}\n")
+                    f.write(f"{class_id} {x:.5f} {y:.5f} {w:.5f} {h:.5f}\n")
 
         print(f"Converted annotations saved to: {output_dir}")
 
