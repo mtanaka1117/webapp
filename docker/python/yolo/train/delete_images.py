@@ -3,6 +3,7 @@ from ultralytics.utils.checks import check_requirements
 import numpy as np
 from pathlib import Path
 import random
+import json
 
 check_requirements(('pycocotools>=2.0',))
 from pycocotools.coco import COCO
@@ -52,74 +53,95 @@ def delete_category_images(dir, target_classes):
                         print(f"Deleted label: {label_path}")
 
 
-def remove_excess_images(coco_json, image_dir, label_dir, target_category, remove_ratio=0.5):
+
+def filter_and_delete_images(original_json, image_dir, label_dir, output_json, delete_label, exclude_labels, ratio=0.5):
     """
-    特定カテゴリに関連する画像をランダムに削除
+    特定カテゴリ（Person）の画像を削除。ただし、指定されたカテゴリ（exclude_labels）が含まれる画像は削除しない。
     
-    Parameters:
-        coco_json (str or Path): COCO形式のアノテーションファイル
-        image_dir (str or Path): 対応する画像ディレクトリ
-        label_dir (str or Path): 対応するラベルディレクトリ
-        target_category (str): 削除対象カテゴリ名
-        remove_ratio (float): 削除する割合 (0.0〜1.0)
+    Args:
+        original_json (str): 元のCOCOアノテーションファイルのパス
+        image_dir (str): 画像ディレクトリ
+        output_json (str): 更新後のアノテーションファイルの保存先
+        delete_label (str): 削除対象カテゴリの名前
+        exclude_labels (list): 削除したくないカテゴリの名前リスト
+        ratio (float): 削除割合（0.0～1.0）
     """
-    coco = COCO(coco_json)
+    coco = COCO(original_json)
+
+    # カテゴリIDを取得
+    delete_id = coco.getCatIds(catNms=[delete_label])[0]
+    exclude_cat_ids = set(coco.getCatIds(catNms=exclude_labels))
+
+    # 各カテゴリに関連する画像IDを取得
+    delete_img_ids = set(coco.getImgIds(catIds=[delete_id]))
+    exclude_img_ids = set()
+    for cat_id in exclude_cat_ids:
+        exclude_img_ids.update(coco.getImgIds(catIds=[cat_id]))
+        
+    # 削除候補
+    delete_candidates = delete_img_ids - exclude_img_ids
+    delete_target = set(random.sample(delete_candidates, int(len(delete_candidates) * ratio)))
+
+    # 新しい画像とアノテーションを構築
+    filtered_images = []
+    filtered_annotations = []
+
+    all_image_ids = coco.getImgIds()
+    all_images = coco.loadImgs(all_image_ids)
+    for img in tqdm(all_images, desc="Filtering images"):
+        if img["id"] not in delete_target:  # 削除対象でない場合に保持
+            filtered_images.append(img)
+            ann_ids = coco.getAnnIds(imgIds=[img["id"]])
+            filtered_annotations.extend(coco.loadAnns(ann_ids))
+    
+    # 新しいアノテーションデータを保存
+    filtered_data = {
+        "images": filtered_images,
+        "annotations": filtered_annotations,
+        "categories": coco.dataset["categories"],
+    }
+
+    with open(output_json, "w") as f:
+        json.dump(filtered_data, f, indent=4)
+
+    # 削除対象の画像ファイルを削除
     image_dir = Path(image_dir)
-    label_dir = Path(label_dir)
-    
-    # 削除対象カテゴリのIDを取得
-    target_cat_ids = coco.getCatIds(catNms=target_category)
-    if not target_cat_ids:
-        print(f"Category '{target_category}' not found in the dataset.")
-        return
-
-    # 対象カテゴリに関連する画像IDを取得
-    target_img_ids = coco.getImgIds(catIds=target_cat_ids)
-    print(f"Found {len(target_img_ids)} images for category '{target_category}'.")
-
-    # 削除する画像をランダムに選択
-    num_to_remove = int(len(target_img_ids) * remove_ratio)
-    img_ids_to_remove = set(random.sample(target_img_ids, num_to_remove))
-    print(f"Removing {len(img_ids_to_remove)} images.")
-
-    # 画像とラベルを削除
-    removed_count = 0
-    for img_id in tqdm(img_ids_to_remove):
-        im = coco.loadImgs([img_id])[0]
-        img_path = image_dir / Path(im["file_name"]).name
+    dataset_dir = Path('/home/srv-admin/webapp/docker/python/yolo/datasets/Objects365')
+    for img_id in tqdm(delete_target, desc="Deleting images"):
+        img_info = coco.loadImgs([img_id])[0]
+        img_path = image_dir / Path(img_info["file_name"]).name
         label_path = label_dir / img_path.with_suffix('.txt').name
-
+        
         if img_path.exists():
-            # img_path.unlink()
-            img_path.rename(dir / 'removed_images' / Path(im["file_name"]).name)
-            removed_count += 1
-
+            img_path.rename(dataset_dir / 'removed_images' / 'train' / Path(img_info["file_name"]).name)
+            print(f"Deleted: {img_path}")
+            
         if label_path.exists():
-            # label_path.unlink()
-            label_path.rename(dir / 'removed_labels' / Path(im["file_name"]).name)
+            label_path.rename(dataset_dir / 'removed_labels' / 'train' / img_path.with_suffix('.txt').name)
+            print(f"Deleted label: {label_path}")
 
-    print(f"Removed {removed_count} images and corresponding labels.")
-
-
-if __name__ == '__main__':
-    dir = Path('/home/srv-admin/webapp/docker/python/yolo/datasets/Objects365')
-    target_classes = ["Person", "Glasses", "Bottle", "Cup", "Handbag/Satchel", "Book",
-                    "Umbrella", "Watch", "Pen/Pencil", "Cell Phone",
-                    "Laptop", "Clock", "Keyboard", "Mouse", "Head Phone", "Remote",
-                    "Scissors", "Folder", "earphone", "Mask", "Tissue", "Wallet/Purse",
-                    "Tablet", "Key", "CD", "Stapler", "Eraser", "Lipstick"]
-    
-    delete_category_images(dir, target_classes)
-
-
+# 実行部分
+dataset_dir = Path('/home/srv-admin/webapp/docker/python/yolo/datasets/Objects365')
+split = "train"
+filter_and_delete_images(
+    original_json = dataset_dir / f"updated_annotations_{split}.json",
+    image_dir = dataset_dir / "images" / split,
+    label_dir = dataset_dir / "labels" / split,
+    output_json = dataset_dir / f"updated_annotations_{split}.json",
+    delete_label = "Book",
+    exclude_labels = ["Remote", "Scissors", "Folder", "earphone", "Mask", "Tissue", "Wallet/Purse",
+                    "Tablet", "Key", "CD", "Stapler", "Eraser", "Lipstick"],  # 削除したくないカテゴリをリストで指定
+    ratio = 0.6
+    )
 
 # if __name__ == '__main__':
 #     dir = Path('/home/srv-admin/webapp/docker/python/yolo/datasets/Objects365')
+#     target_classes = ["Person", "Glasses", "Bottle", "Cup", "Handbag/Satchel", "Book",
+#                     "Umbrella", "Watch", "Pen/Pencil", "Cell Phone",
+#                     "Laptop", "Clock", "Keyboard", "Mouse", "Head Phone", "Remote",
+#                     "Scissors", "Folder", "earphone", "Mask", "Tissue", "Wallet/Purse",
+#                     "Tablet", "Key", "CD", "Stapler", "Eraser", "Lipstick"]
     
-#     coco_json = dir / "/filtered_annotations_train.json"
-#     image_dir = dir / "/images/train"
-#     label_dir = dir / "/labels/train"
-#     target_category = ["Person"]
-#     remove_excess_images(coco_json, image_dir, label_dir, target_category, remove_ratio=0.5)
+#     delete_category_images(dir, target_classes)
 
 

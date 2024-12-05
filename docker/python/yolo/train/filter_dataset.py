@@ -24,19 +24,18 @@ def filter_annotations_chunked(original_json, output_json, target_categories):
         filtered_annotations.extend([
             ann for ann in coco.loadAnns(coco.getAnnIds(imgIds=target_img_ids, catIds=[cat_id]))
         ])
-        filtered_categories.extend([cat_id])
-        print(len(target_img_ids))
+        
 
     # 重複を削除
     filtered_images = {img['id']: img for img in filtered_images}.values()
     filtered_annotations = {ann['id']: ann for ann in filtered_annotations}.values()
-    
+    filtered_categories = {ids['id']: ids for ids in coco.loadCats(target_cat_ids)}.values()
     
     # 結果をJSONとして保存
     filtered_data = {
         "images": list(filtered_images),
         "annotations": list(filtered_annotations),
-        "categories": filtered_categories
+        "categories": list(filtered_categories)
     }
     with open(output_json, "w") as f:
         json.dump(filtered_data, f, indent=4)

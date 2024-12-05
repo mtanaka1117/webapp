@@ -96,15 +96,15 @@ bg_first_v_gray = cv2.cvtColor(bg_first_v, cv2.COLOR_BGR2GRAY)
 _, table_mask = cv2.threshold(bg_first_v_gray, 80, 255, cv2.THRESH_BINARY)
 
 
-model = YOLO("yolov8x-seg.pt")
+model = YOLO("yolov8x.pt")
 flag_hand = 0
 color_g = {}
 
 
-# shutil.rmtree('../results/table3_thumbnails/')
-# shutil.rmtree('../results/table3_detail/')
-# shutil.rmtree('../results/table3_mask/')
-# os.remove('./log/test_table3.csv')
+# shutil.rmtree('../results/thing2vec_table3_thumbnails/')
+# shutil.rmtree('../results/thing2vec_table3_detail/')
+# shutil.rmtree('../results/thing2vec_table3_mask/')
+# os.remove('./log/thing2vec_table3.csv')
 
 
 for i in file_list:
@@ -140,21 +140,24 @@ for i in file_list:
                 points.append((cx, cy))
 
             # YOLO
-            pred = model.predict(img_v_color, classes=[0, 25, 26, 28, 39, 41, 64, 65, 67, 73, 74, 76])
+            pred = model.predict(img_v_color)
             frame = pred[0].plot()
             bboxes = pred[0].boxes.xyxy.cpu().numpy()
             classes = pred[0].boxes.cls.cpu().numpy()
-            seg_masks = pred[0].masks
             
             
             # 人の手があるとき
             if 0 in classes: flag_hand = 1
             
-            polygon = []
-            for x1, y1, x2, y2 in bboxes:
+            polygon = [] # 検知した物体のbboxを格納
+            for x1, y1, x2, y2 in np.round(bboxes, 1):
                 polygon.append(np.array([[x1, y1], [x1, y2], [x2, y2], [x2, y1]]))
-            
-            
+                
+                bbox_mask = np.zeros((480, 640), np.uint8)
+                for m in bboxes: # YOLOで検知した部分を塗りつぶし
+                    cv2.rectangle(bbox_mask, (x1, y1), (x2, y2), (0, 0, 0), -1)
+                
+            # 差分画像処理で検知した部分
             hue_mask = np.ones((480, 640), np.uint8)
             for (cx, cy), [hue, (x,y,w,h)] in list(color_g.items()):
                 hue_img = cv2.cvtColor(img_v, cv2.COLOR_BGR2HSV)[:,:,0]
@@ -169,27 +172,20 @@ for i in file_list:
                 else:
                     del color_g[(cx, cy)]
             
-            
-            if seg_masks is not None:
-                # セグメンテーションのマスクを生成
-                seg_mask = np.zeros((480, 640), np.uint8)
-                for m in seg_masks.data.cpu().numpy():
-                    m = m.astype(np.uint8)*255
-                    seg_mask = cv2.bitwise_or(seg_mask, m)
-                
                 
                 diff = cv2.absdiff(img_v, bg_first_v)
                 diff = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
                 #YOLOで検知したものを塗りつぶし
-                seg_mask = cv2.bitwise_not(seg_mask)
-                seg_mask = cv2.dilate(seg_mask, kernel, 5)
+                bbox_mask = cv2.bitwise_not(bbox_mask)
+                bbox_mask= cv2.dilate(bbox_mask, kernel, 5)
 
                 _, thres = cv2.threshold(diff,10,255,cv2.THRESH_BINARY)
-                thres = cv2.bitwise_and(thres, seg_mask)
+                thres = cv2.bitwise_and(thres, bbox_mask)
                 thres = cv2.bitwise_and(thres, hue_mask)
                 thres = cv2.bitwise_and(thres, table_mask)
                 thres = cv2.erode(thres, kernel, 5)
                 
+                # YOLOが検知できていない範囲に対して
                 contours2, _ = cv2.findContours(thres, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
                 for cnt in contours2:
                     area = cv2.contourArea(cnt)
@@ -214,38 +210,42 @@ for i in file_list:
             paste = cv2.add(back, cut)
             
 
-            with open("./log/test_table3.csv", "a") as f:
+            with open("./log/thing2vec_table3.csv", "a") as f:
                 for poly, cls, bbox in zip(polygon, classes, bboxes):
-                    for pt in points:
+                    is_touch = False
+                    
+                    for pt in points: # あるpolyに対して熱痕跡の重心があるかどうか
                         if cv2.pointPolygonTest(poly, pt, False) >= 0 and cls != 0:
-                            time = datetime.datetime.now()
-                            data = [[time, "table3", int(cls), list(bbox)]]
-                            writer = csv.writer(f)
-                            writer.writerows(data)
-                            
-                            path = '../results/table3_thumbnails/{}'.format(int(cls))
-                            if not os.path.exists(path): os.makedirs(path)
-                            path = '../results/table3_detail/{}'.format(int(cls))
-                            if not os.path.exists(path): os.makedirs(path)
-                            path = '../results/table3_mask/{}'.format(int(cls))
-                            if not os.path.exists(path): os.makedirs(path)
-                            
-                            xmin, ymin, xmax, ymax = map(int, bbox[:4])
-                            crop = img_v_color[ymin:ymax, xmin:xmax]
-                            cv2.imwrite('../results/table3_thumbnails/{}/{}.jpg'.format(int(cls),time), crop)
-                            
-                            overview = img_v_color.copy()
-                            cv2.rectangle(overview, (xmin,ymin), (xmax,ymax), (0, 0, 255), thickness=5)
-                            cv2.imwrite('../results/table3_detail/{}/detail_{}.jpg'.format(int(cls),time), overview)
-                            
-                            mask = cv2.bitwise_and(erode_v, erode_t)
-                            mask_inv = cv2.bitwise_not(mask)[ymin:ymax, xmin:xmax]
-                            cv2.imwrite('../results/table3_mask/{}/{}.jpg'.format(int(cls),time), mask_inv)
-                            break
+                            is_touch = True
+                    
+                    time = datetime.datetime.now()
+                    data = [[time, "table3", int(cls), list(bbox), is_touch]]
+                    writer = csv.writer(f)
+                    writer.writerows(data)
+                    
+                    path = '../results/thing2vec_table3_thumbnails/{}'.format(int(cls))
+                    if not os.path.exists(path): os.makedirs(path)
+                    path = '../results/thing2vec_table3_detail/{}'.format(int(cls))
+                    if not os.path.exists(path): os.makedirs(path)
+                    path = '../results/thing2vec_table3_mask/{}'.format(int(cls))
+                    if not os.path.exists(path): os.makedirs(path)
+                    
+                    xmin, ymin, xmax, ymax = map(int, bbox[:4])
+                    crop = img_v_color[ymin:ymax, xmin:xmax]
+                    cv2.imwrite('../results/thing2vec_table3_thumbnails/{}/{}.jpg'.format(int(cls),time), crop)
+                    
+                    overview = img_v_color.copy()
+                    cv2.rectangle(overview, (xmin,ymin), (xmax,ymax), (0, 0, 255), thickness=5)
+                    cv2.imwrite('../results/thing2vec_table3_detail/{}/detail_{}.jpg'.format(int(cls),time), overview)
+                    
+                    mask = cv2.bitwise_and(erode_v, erode_t)
+                    mask_inv = cv2.bitwise_not(mask)[ymin:ymax, xmin:xmax]
+                    cv2.imwrite('../results/thing2vec_table3_mask/{}/{}.jpg'.format(int(cls),time), mask_inv)
+                    break
 
 
-            # if (feature_compare(b_img_v, img_v)<12):
-            if (0 not in classes and feature_compare(b_img_v, img_v)<12): #手がない時に背景更新
+            if (feature_compare(b_img_v, img_v)<12):
+            # if (0 not in classes and feature_compare(b_img_v, img_v)<12): #手がない時に背景更新
                 bg_v = img_v.copy()
                 b_img_v = img_v.copy()
                 # bg_t = img_t.copy()
@@ -256,7 +256,7 @@ for i in file_list:
                     
                     bg_v_noshade = delete_shade(bg_v)
                     bg_diff = cv2.bitwise_xor(bg_v_noshade, bg_before).astype(np.uint8) #1つ前の背景-今の背景
-                    bg_diff = cv2.bitwise_and(seg_mask, bg_diff) #YOLOで検知されたものを除外
+                    bg_diff = cv2.bitwise_and(bbox_mask, bg_diff) #YOLOで検知されたものを除外
                     bg_diff = cv2.bitwise_and(table_mask, bg_diff) #tableの範囲のみで画像処理
                     bg_diff = cv2.erode(bg_diff, kernel, 1)
                     bg_diff = cv2.dilate(bg_diff, kernel, 1)
