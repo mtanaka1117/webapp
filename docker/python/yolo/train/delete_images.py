@@ -113,26 +113,41 @@ def filter_and_delete_images(original_json, image_dir, label_dir, output_json, d
         label_path = label_dir / img_path.with_suffix('.txt').name
         
         if img_path.exists():
-            img_path.rename(dataset_dir / 'removed_images' / 'train' / Path(img_info["file_name"]).name)
+            img_path.rename(dataset_dir / 'removed_person_images' / 'train' / Path(img_info["file_name"]).name)
             print(f"Deleted: {img_path}")
             
         if label_path.exists():
-            label_path.rename(dataset_dir / 'removed_labels' / 'train' / img_path.with_suffix('.txt').name)
+            label_path.rename(dataset_dir / 'removed_person_labels' / 'train' / img_path.with_suffix('.txt').name)
             print(f"Deleted label: {label_path}")
 
 # 実行部分
 dataset_dir = Path('/home/srv-admin/webapp/docker/python/yolo/datasets/Objects365')
 split = "train"
+# filter_and_delete_images(
+#     original_json = dataset_dir / f"updated_annotations_{split}.json",
+#     image_dir = dataset_dir / "images" / split,
+#     label_dir = dataset_dir / "labels" / split,
+#     output_json = dataset_dir / f"updated_annotations_{split}.json",
+#     delete_label = "Book",
+#     exclude_labels = ["Remote", "Scissors", "Folder", "earphone", "Mask", "Tissue", "Wallet/Purse",
+#                     "Tablet", "Key", "CD", "Stapler", "Eraser", "Lipstick"],  # 削除したくないカテゴリをリストで指定
+#     ratio = 0.6
+#     )
+
+
 filter_and_delete_images(
     original_json = dataset_dir / f"updated_annotations_{split}.json",
     image_dir = dataset_dir / "images" / split,
     label_dir = dataset_dir / "labels" / split,
-    output_json = dataset_dir / f"updated_annotations_{split}.json",
-    delete_label = "Book",
-    exclude_labels = ["Remote", "Scissors", "Folder", "earphone", "Mask", "Tissue", "Wallet/Purse",
-                    "Tablet", "Key", "CD", "Stapler", "Eraser", "Lipstick"],  # 削除したくないカテゴリをリストで指定
-    ratio = 0.6
-    )
+    output_json = dataset_dir / f"delete_person_annotations_{split}.json",
+    delete_label = "Person",
+    exclude_labels= ["Glasses", "Bottle", "Cup", "Handbag/Satchel", "Book",
+        "Umbrella", "Watch", "Pen/Pencil", "Cell Phone",
+        "Laptop", "Clock", "Keyboard", "Mouse", "Head Phone", "Remote",
+        "Scissors", "Folder", "earphone", "Mask", "Tissue", "Wallet/Purse",
+        "Tablet", "Key", "CD", "Stapler", "Eraser", "Lipstick"],
+    ratio = 1.0
+)
 
 # if __name__ == '__main__':
 #     dir = Path('/home/srv-admin/webapp/docker/python/yolo/datasets/Objects365')

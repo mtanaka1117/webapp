@@ -39,7 +39,7 @@ def remap_labels(dir, new_category_map):
 
 
 dir = Path("/home/srv-admin/webapp/docker/python/yolo/datasets/Objects365")
-target_categories = [1, 8, 9, 11, 14, 19, 40, 43, 55, 62, 74, 95, 107, 116, 126, 133, 170, 206, 208, 209, 226, 239, 244, 252, 285, 307, 358, 362]
+target_categories = [8, 9, 11, 14, 19, 40, 43, 55, 62, 74, 95, 107, 116, 126, 133, 170, 206, 208, 209, 226, 239, 244, 252, 285, 307, 358, 362]
 new_category_map = {old_id-1: new_id for new_id, old_id in enumerate(target_categories)}  # マッピングを作成
 
 remap_labels(dir, new_category_map)

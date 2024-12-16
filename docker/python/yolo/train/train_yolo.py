@@ -1,9 +1,12 @@
 from ultralytics import YOLO
+import ultralytics.data.build as build
+from dataloader import YOLOWeightedDataset
 import numpy as np
 
 # Load a model
 model = YOLO("../yolov8x.pt")  # load a pretrained model (recommended for training)
 
+build.YOLODataset = YOLOWeightedDataset
 # class_counts = [80332, 6676, 24399, 22608, 6832, 6827, 3271, 2724, 9264, 4131,
 #                 4614, 1702, 5925, 5877, 2126, 2257, 2712, 1566, 1414, 459, 2027,
 #                 886, 917, 1031, 1139, 506, 263, 248]
@@ -12,4 +15,4 @@ model = YOLO("../yolov8x.pt")  # load a pretrained model (recommended for traini
 # print(np.round(class_weights, 1))
 
 # Train the model
-results = model.train(data="Objects365.yaml", epochs=50, imgsz=640, pretrained=True, batch=32, weight_decay=0.001, device=[0,1])
+results = model.train(data="Objects365.yaml", epochs=50, imgsz=640, pretrained=True, batch=32, device=[0,1])

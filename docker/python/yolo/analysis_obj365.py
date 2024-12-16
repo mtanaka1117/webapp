@@ -48,26 +48,32 @@ def is_same_object(hist1, hist2, bbox1, bbox2):
     return hist_comp + iou
 
 def analysis(input_csv_path, output_csv_path, result_dir):
+    """
+    input: [time, day_of_week, place, label, list(bbox), is_touch]
+    output: [id, label, arrival_time, stay_time, count, day_of_week, x1, y1, x2, y2, place, is_touch]
+    """
+    
     MIN_DATA_THRES = 50
     
-    header = ["id", "label", "arrival_time", "stay_time", "day_of_week", "is_touch"]
+    if os.path.exists(output_csv_path):
+        os.remove(output_csv_path)
+    label_dict = {} # label_count: first_time, last_time, count, bbox
+    hist_dict = {} # label: histのリスト
+    
+    header = ["id", "label", "arrival_time", "stay_time", "count", "day_of_week", "x1", "y1", "x2", "y2", "place", "is_touch"]
     with open(output_csv_path, "a") as f:
         writer = csv.writer(f)
         writer.writerow(header)
     
-    if os.path.exists(output_csv_path):
-        os.remove(output_csv_path)
-    label_dict = {} # label_count: first_time, last_time, count, bbox, is_touch
-    hist_dict = {} # label: histのリスト
-    
     with open(input_csv_path) as f:
         reader = csv.reader(f)
         for row in reader:
-            label = row[2]
-            place = row[1]
-            df_time = datetime.datetime.strptime(row[0], '%Y-%m-%d %H:%M:%S.%f')
-            bbox1 = [int(float(c)) for c in row[3][1:-1].split(',')]
-            is_touch = row[4]
+            dow = row[1]
+            place = row[2]
+            label = row[3]
+            df_time = datetime.datetime.strptime(row[0], '%Y-%m-%d %H:%M:%S')
+            bbox1 = [int(float(c)) for c in row[4][1:-1].split(',')]
+            is_touch = row[5]
             
             # 今までに検出されなかったラベル
             if label not in hist_dict.keys():
@@ -110,15 +116,19 @@ def analysis(input_csv_path, output_csv_path, result_dir):
                     else:
                         with open(output_csv_path, 'a', newline='') as w:
                             writer = csv.writer(w)
+                            # label_index: first_time, last_time, count, bbox
                             if (label_dict[label_index][2] > MIN_DATA_THRES):
                                 x1, y1, x2, y2 = label_dict[label_index][3]
                                 l = label_index.partition('_')
-                                line = [l[0]] + label_dict[label_index][0:3] + [x1, y1, x2, y2] +[place]
+                                first_time = label_dict[label_index][0]
+                                last_time = label_dict[label_index][1]
+                                elapsed_time = last_time - first_time
+                                elapsed_time = elapsed_time.total_seconds()
+                                line = [label_index] + [l[0]] + [first_time] + [int(elapsed_time)] + \
+                                            [label_dict[label_index][2]] + [dow] + [x1, y1, x2, y2] + [place] + [is_touch]
                                 writer.writerow(line)
                         
                         label_dict[label_index] = [df_time, df_time, 1, bbox1]
-                        
-                        # 辞書から削除する
                         
 
                 # 過去に同一物体がないとき
@@ -132,7 +142,12 @@ def analysis(input_csv_path, output_csv_path, result_dir):
                 if (label_dict[label_index][2] > MIN_DATA_THRES):
                     x1, y1, x2, y2 = label_dict[label_index][3]
                     l = label_index.partition('_')
-                    line = [l[0]] + label_dict[label_index][0:3] + [x1, y1, x2, y2] + [place]
+                    first_time = label_dict[label_index][0]
+                    last_time = label_dict[label_index][1]
+                    elapsed_time = last_time - first_time
+                    elapsed_time = elapsed_time.total_seconds()
+                    line = [label_index] + [l[0]] + [first_time] + [int(elapsed_time)] + \
+                                [label_dict[label_index][2]] + [dow] + [x1, y1, x2, y2] + [place] + [is_touch]
                     writer.writerow(line)
 
 if __name__ == '__main__':
