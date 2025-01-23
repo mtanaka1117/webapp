@@ -1,4 +1,4 @@
-from analysis import analysis
+from docker.python.yolo.analysis_obj365_bboxcent import analysis
 from db_controll import delete_all_data, insert_csv_data
 import argparse
 import mysql.connector

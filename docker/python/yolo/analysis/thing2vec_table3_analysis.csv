@@ -1,5 +1,0 @@
-id,label,arrival_time,stay_time,count,day_of_week,x1,y1,x2,y2,place,is_touch
-41_1,41,2024-07-31 15:38:39,47,959,Wednesday,351,280,476,396,table3,False
-65_0,65,2024-07-31 15:37:11,87,1724,Wednesday,50,233,130,388,table3,False
-41_0,41,2024-07-31 15:37:12,29,70,Wednesday,377,136,466,225,table3,False
-41_1,41,2024-07-31 15:39:49,62,1233,Wednesday,345,285,475,398,table3,False

@@ -1,0 +1,2 @@
+id,label,arrival_time,stay_time,count,day_of_week,x1,y1,x2,y2,x_cent,y_cent,width,height,place,is_touch
+8_0,8,2024-12-23 12:30:06,322,9251,Monday,466,95,649,288,558,192,182,193,home,False
