@@ -230,8 +230,7 @@ for i in file_list:
                 
             else: b_img_v = img_v.copy()
             
-            video.write(frame)
-            # video.write(paste)
+            video.write(paste)
 
     except StopIteration:
         break

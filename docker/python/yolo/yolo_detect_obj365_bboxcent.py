@@ -96,7 +96,7 @@ for dirpath, _ , _ in os.walk(root_path):
 file_list = peekable(sorted(file_list))
 
 fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
-video = cv2.VideoWriter('kishino_obj365_1223_2031.mp4', fourcc, 30, (1065, 850), isColor=True)
+video = cv2.VideoWriter('./video/kishino_obj365_1223_2031.mp4', fourcc, 30, (1065, 850), isColor=True)
 
 if '_V' in file_list.peek():
     bg_v = cv2.imread(next(file_list))
@@ -127,9 +127,9 @@ model.set_classes(["Person", "Glasses", "Bottle", "Cup", "Handbag",
         "Tablet", "Key", "Stapler", "Eraser", "Lipstick"])
 flag_hand = 0
 
-# shutil.rmtree('../results/thing2vec_1223_2031_thumbnails/')
-# shutil.rmtree('../results/thing2vec_1223_2031_detail/')
-# shutil.rmtree('../results/thing2vec_1223_2031_mask/')
+shutil.rmtree('../results/thing2vec_1223_2031_thumbnails/')
+shutil.rmtree('../results/thing2vec_1223_2031_detail/')
+shutil.rmtree('../results/thing2vec_1223_2031_mask/')
 os.remove('./log/thing2vec_kishino_1223_2031.csv')
 
 
@@ -148,7 +148,7 @@ for i in file_list:
             diff_t = cv2.absdiff(img_t, bg_t)
             diff_t = cv2.cvtColor(diff_t, cv2.COLOR_BGR2GRAY)
             affined_t = cv2.warpAffine(diff_t, affine_matrix, (img_v.shape[1], img_v.shape[0]))
-            _, img_th_t = cv2.threshold(affined_t,8,255,cv2.THRESH_BINARY)
+            _, img_th_t = cv2.threshold(affined_t,25,255,cv2.THRESH_BINARY)
             erode_t = cv2.dilate(img_th_t,kernel,3)
             # erode_t = cv2.erode(dilate_t, kernel, 3)
 
@@ -223,16 +223,15 @@ for i in file_list:
                         cv2.imwrite('../results/thing2vec_1223_2031_mask/{}/{}.jpg'.format(int(cls),time), mask_inv)
                         break
 
-
-            if (0 not in classes and feature_compare(b_img_v, img_v)<12): #手がない時に背景更新
+            if feature_compare(b_img_v, img_v)<12:
+            # if (0 not in classes and feature_compare(b_img_v, img_v)<12): #手がない時に背景更新
                 bg_v = img_v.copy()
                 b_img_v = img_v.copy()
                 # bg_t = img_t.copy()
                 
             else: b_img_v = img_v.copy()
             
-            video.write(frame)
-            # video.write(paste)
+            video.write(paste)
 
     except StopIteration:
         break

@@ -53,8 +53,7 @@ def analysis(input_csv_path, output_csv_path, result_dir):
     output: [id, label, arrival_time, stay_time, count, day_of_week, x1, y1, x2, y2, x_center, y_center, width, height, place, is_touch]
     """
     
-    MIN_DATA_THRES = 300
-    touch_flag = False
+    MIN_DATA_THRES = 200
     
     if os.path.exists(output_csv_path):
         os.remove(output_csv_path)
@@ -76,19 +75,16 @@ def analysis(input_csv_path, output_csv_path, result_dir):
             bbox1 = [int(float(c)) for c in row[4][1:-1].split(',')]
             bbox_xywh = [int(float(c)) for c in row[5][1:-1].split(',')]
             is_touch = row[6]
-
-            if is_touch == True:
-                touch_flag = True
             
             # 今までに検出されなかったラベル
             if label not in hist_dict.keys():
                 img = cv2.imread('../results/{}_thumbnails/{}/{}.jpg'.format(result_dir, label, df_time))
                 mask = cv2.imread('../results/{}_mask/{}/{}.jpg'.format(result_dir, label, df_time))
                 hist_dict[label] = [calc_hist(img, mask)]
-                label_dict['{}_0'.format(label)] = [df_time, df_time, 1, bbox1, bbox_xywh]
+                label_dict['{}_0'.format(label)] = [df_time, df_time, 1, bbox1, bbox_xywh, is_touch]
             
             # 過去に検出されたラベルなら
-            else:
+            else:                
                 # 同一物体かを判定
                 score = [] # 類似度スコア
                 img = cv2.imread('../results/{}_thumbnails/{}/{}.jpg'.format(result_dir, label, df_time))
@@ -112,7 +108,12 @@ def analysis(input_csv_path, output_csv_path, result_dir):
                     
                     #bboxの平均を更新
                     label_dict[label_index][3] = [round((n*y+x)/(n+1)) for x, y in zip(bbox1, bbox_avg)]
-            
+                    
+                    if is_touch=="True" or label_dict[label_index][5]=="True":
+                        label_dict[label_index][5] = True
+                    else:
+                        label_dict[label_index][5] = False
+                    
                     # 最終時刻と確認された時刻の差が一定以内であれば最終時刻を更新
                     if df_time - label_dict[label_index][1] < datetime.timedelta(seconds=30):
                         label_dict[label_index][1] = df_time
@@ -128,18 +129,19 @@ def analysis(input_csv_path, output_csv_path, result_dir):
                                 l = label_index.partition('_')
                                 first_time = label_dict[label_index][0]
                                 last_time = label_dict[label_index][1]
+                                touch = label_dict[label_index][5]
                                 elapsed_time = last_time - first_time
                                 elapsed_time = elapsed_time.total_seconds()
                                 line = [label_index] + [l[0]] + [first_time] + [int(elapsed_time)] + \
-                                            [label_dict[label_index][2]] + [dow] + [x1, y1, x2, y2] + [x_cent, y_cent, width, height] + [place] + [touch_flag]
+                                            [label_dict[label_index][2]] + [dow] + [x1, y1, x2, y2] + [x_cent, y_cent, width, height] + [place] + [touch]
                                 writer.writerow(line)
                         
-                        label_dict[label_index] = [df_time, df_time, 1, bbox1, bbox_xywh]
+                        label_dict[label_index] = [df_time, df_time, 1, bbox1, bbox_xywh, is_touch]
                         
 
                 # 過去に同一物体がないとき
                 else:
-                    label_dict['{}_{}'.format(label, len(hist_dict[label]))] = [df_time, df_time, 1, bbox1, bbox_xywh]
+                    label_dict['{}_{}'.format(label, len(hist_dict[label]))] = [df_time, df_time, 1, bbox1, bbox_xywh, is_touch]
                     hist_dict[label].append(hist1)
                 
         with open(output_csv_path, 'a', newline="") as w:
@@ -151,10 +153,11 @@ def analysis(input_csv_path, output_csv_path, result_dir):
                     l = label_index.partition('_')
                     first_time = label_dict[label_index][0]
                     last_time = label_dict[label_index][1]
+                    touch = label_dict[label_index][5]
                     elapsed_time = last_time - first_time
                     elapsed_time = elapsed_time.total_seconds()
                     line = [label_index] + [l[0]] + [first_time] + [int(elapsed_time)] + \
-                                [label_dict[label_index][2]] + [dow] + [x1, y1, x2, y2] + [x_cent, y_cent, width, height] + [place] + [touch_flag]
+                                [label_dict[label_index][2]] + [dow] + [x1, y1, x2, y2] + [x_cent, y_cent, width, height] + [place] + [touch]
                     writer.writerow(line)
 
 if __name__ == '__main__':
