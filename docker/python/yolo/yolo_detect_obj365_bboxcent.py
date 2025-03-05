@@ -71,8 +71,12 @@ def delete_shade(img):
 
 
 # kishino_1223
-affine_matrix = np.array([[ 1.53104533e+00, -1.88203939e-02,  3.54805456e+00],
-                        [-3.01498812e-03,  1.49792624e+00,  2.71967074e+01]])
+# affine_matrix = np.array([[ 1.53104533e+00, -1.88203939e-02,  3.54805456e+00],
+#                         [-3.01498812e-03,  1.49792624e+00,  2.71967074e+01]])
+
+# kishino_1224
+# affine_matrix = np.array([[ 1.58602093e+00,  6.55318629e-02, -4.25751123e+01],
+#                         [-7.85190833e-02,  1.43789021e+00,  7.34427318e+01]])
 
 #kishino_0113
 # affine_matrix = np.array([[ 1.62759602e+00,  3.96586060e-01, -3.93778094e+01],
@@ -86,8 +90,12 @@ affine_matrix = np.array([[ 1.53104533e+00, -1.88203939e-02,  3.54805456e+00],
 # affine_matrix = np.array([[ 1.59084405, -0.053231,    4.39110465],
 #                         [ 0.04086998,  1.43773675, 28.14188174]])
 
+# kishino_0122
+affine_matrix = np.array([[ 1.55276115e+00, -3.12637797e-02,  1.91350024e+01],
+                        [ 1.36986442e-02,  1.50439756e+00,  1.94995593e+01]])
 
-root_path = "/images/kishino/20241223_2031/"
+
+root_path = "/images/kishino/20250126_1854/"
 pattern = "*.jpg"
 
 file_list = []
@@ -96,7 +104,7 @@ for dirpath, _ , _ in os.walk(root_path):
 file_list = peekable(sorted(file_list))
 
 fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
-video = cv2.VideoWriter('./video/kishino_obj365_1223_2031.mp4', fourcc, 30, (1065, 850), isColor=True)
+video = cv2.VideoWriter('./video/kishino_obj365_0126_1854.mp4', fourcc, 30, (1065, 850), isColor=True)
 
 if '_V' in file_list.peek():
     bg_v = cv2.imread(next(file_list))
@@ -127,10 +135,10 @@ model.set_classes(["Person", "Glasses", "Bottle", "Cup", "Handbag",
         "Tablet", "Key", "Stapler", "Eraser", "Lipstick"])
 flag_hand = 0
 
-shutil.rmtree('../results/thing2vec_1223_2031_thumbnails/')
-shutil.rmtree('../results/thing2vec_1223_2031_detail/')
-shutil.rmtree('../results/thing2vec_1223_2031_mask/')
-os.remove('./log/thing2vec_kishino_1223_2031.csv')
+# shutil.rmtree('../results/thing2vec_0126_1854_thumbnails/')
+# shutil.rmtree('../results/thing2vec_0126_1854_detail/')
+# shutil.rmtree('../results/thing2vec_0126_1854_mask/')
+# os.remove('./log/thing2vec_kishino_0126_1854.csv')
 
 
 for i in file_list:
@@ -189,7 +197,7 @@ for i in file_list:
             paste = cv2.add(back, cut)
             
 
-            with open("./log/thing2vec_kishino_1223_2031.csv", "a") as f:
+            with open("./log/thing2vec_kishino_0126_1854.csv", "a") as f:
                 for poly, cls, bbox_xyxy, bbox_xywh in zip(polygon, classes, bboxes_xyxy, bboxes_xywh):
                     is_touch = False
                     
@@ -203,24 +211,24 @@ for i in file_list:
                         writer = csv.writer(f)
                         writer.writerows(data)
                         
-                        path = '../results/thing2vec_1223_2031_thumbnails/{}'.format(int(cls))
+                        path = '../results/thing2vec_0126_1854_thumbnails/{}'.format(int(cls))
                         if not os.path.exists(path): os.makedirs(path)
-                        path = '../results/thing2vec_1223_2031_detail/{}'.format(int(cls))
-                        if not os.path.exists(path): os.makedirs(path)
-                        path = '../results/thing2vec_1223_2031_mask/{}'.format(int(cls))
+                        # path = '../results/thing2vec_0126_1854_detail/{}'.format(int(cls))
+                        # if not os.path.exists(path): os.makedirs(path)
+                        path = '../results/thing2vec_0126_1854_mask/{}'.format(int(cls))
                         if not os.path.exists(path): os.makedirs(path)
                         
                         xmin, ymin, xmax, ymax = map(int, bbox_xyxy[:4])
                         crop = img_v_color[ymin:ymax, xmin:xmax]
-                        cv2.imwrite('../results/thing2vec_1223_2031_thumbnails/{}/{}.jpg'.format(int(cls),time), crop)
+                        cv2.imwrite('../results/thing2vec_0126_1854_thumbnails/{}/{}.jpg'.format(int(cls),time), crop)
                         
-                        overview = img_v_color.copy()
-                        cv2.rectangle(overview, (xmin,ymin), (xmax,ymax), (0, 0, 255), thickness=5)
-                        cv2.imwrite('../results/thing2vec_1223_2031_detail/{}/detail_{}.jpg'.format(int(cls),time), overview)
+                        # overview = img_v_color.copy()
+                        # cv2.rectangle(overview, (xmin,ymin), (xmax,ymax), (0, 0, 255), thickness=5)
+                        # cv2.imwrite('../results/thing2vec_0126_1854_detail/{}/detail_{}.jpg'.format(int(cls),time), overview)
                         
                         mask = cv2.bitwise_and(erode_v, erode_t)
                         mask_inv = cv2.bitwise_not(mask)[ymin:ymax, xmin:xmax]
-                        cv2.imwrite('../results/thing2vec_1223_2031_mask/{}/{}.jpg'.format(int(cls),time), mask_inv)
+                        cv2.imwrite('../results/thing2vec_0126_1854_mask/{}/{}.jpg'.format(int(cls),time), mask_inv)
                         break
 
             if feature_compare(b_img_v, img_v)<12:

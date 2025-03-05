@@ -1,0 +1,5 @@
+id,label,arrival_time,stay_time,count,day_of_week,x1,y1,x2,y2,x_cent,y_cent,width,height,place,is_touch
+5_0,5,2024-12-24 10:05:00,128,276,Tuesday,198,178,915,732,672,445,562,458,home,True
+5_6,5,2024-12-24 10:05:29,27,555,Tuesday,353,174,915,664,553,355,332,383,home,True
+5_0,5,2024-12-24 10:08:03,296,7417,Tuesday,66,96,615,512,497,379,900,589,home,True
+5_1,5,2024-12-24 10:05:06,201,3386,Tuesday,92,92,545,444,312,285,473,357,home,False
